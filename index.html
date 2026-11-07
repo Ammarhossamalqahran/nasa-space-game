@@ -40,8 +40,16 @@
     <section class="info-backdrop" id="planetModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
       <article class="info-card"><button class="modal-close" id="closeModal" aria-label="إغلاق">×</button><div class="modal-hero"><div id="modalPlanet" class="modal-planet earth-orb"></div><div><span class="modal-kicker" id="modalKicker">ملف كوكبي · ٠٣</span><h2 id="modalTitle">الأرض</h2><p id="modalSubtitle">موطننا الوحيد المعروف للحياة</p></div><span class="modal-index" id="modalIndex">٠٣</span></div><p class="modal-description" id="modalDescription"></p><div class="fact-grid"><div class="fact-stat"><span>الجاذبية</span><b id="gravityValue"></b><small>متر/ثانية²</small></div><div class="fact-stat"><span>الغلاف الجوي</span><b id="atmosphereValue"></b><small id="atmosphereNote"></small></div><div class="fact-stat wide"><span>مهمة ناسا مرتبطة</span><b id="missionValue"></b><small id="missionNote"></small></div></div><div class="modal-source"><span>اقرأ المزيد من ناسا</span><a id="nasaLink" href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener noreferrer">المصدر العلمي ↗</a></div></article>
     </section>
-    <div class="texture-credit">خرائط الكواكب: Solar System Scope · CC BY 4.0</div>
+    <div class="texture-credit">خرائط الكواكب: <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener noreferrer">Solar System Scope</a> · CC BY 4.0</div>
   </main>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
   <script type="module" src="script.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const $ = (selector) => document.querySelector(selector);
 const sceneHost = $('#scene');
@@ -8,7 +8,7 @@ scene.background = new THREE.Color(0x050914);
 scene.fog = new THREE.FogExp2(0x050914, 0.0025);
 
 const camera = new THREE.PerspectiveCamera(43, window.innerWidth / window.innerHeight, 0.1, 1300);
-camera.position.set(-3, 14, 28);
+camera.position.set(-0.5, 14, 28);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -23,7 +23,7 @@ controls.dampingFactor = 0.055;
 controls.minDistance = 5.5;
 controls.maxDistance = 80;
 controls.maxPolarAngle = Math.PI * 0.91;
-controls.target.set(0, 0, 0);
+controls.target.set(2.5, 0, 0);
 controls.rotateSpeed = 0.62;
 controls.zoomSpeed = 0.85;
 controls.panSpeed = 0.65;
@@ -35,12 +35,11 @@ sunLight.position.set(0, 0, 0);
 scene.add(sunLight);
 
 const textureLoader = new THREE.TextureLoader();
-textureLoader.setCrossOrigin('anonymous');
 const textureUrls = {
-  earth: 'https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg',
-  moon: 'https://www.solarsystemscope.com/textures/download/2k_moon.jpg',
-  mars: 'https://www.solarsystemscope.com/textures/download/2k_mars.jpg',
-  jupiter: 'https://www.solarsystemscope.com/textures/download/2k_jupiter.jpg'
+  earth: './textures/earth.jpg',
+  moon: './textures/moon.jpg',
+  mars: './textures/mars.jpg',
+  jupiter: './textures/jupiter.jpg'
 };
 const texCache = new Map();
 function getTexture(key, fallbackColor) {
@@ -280,8 +279,8 @@ function focusOn(key) {
   controls.update();
 }
 
-const homeCameraPosition = new THREE.Vector3(-3, 14, 28);
-const homeTarget = new THREE.Vector3(0, 0, 0);
+const homeCameraPosition = new THREE.Vector3(-0.5, 14, 28);
+const homeTarget = new THREE.Vector3(2.5, 0, 0);
 document.querySelectorAll('.body-row').forEach(row => row.addEventListener('click', () => {
   const key = row.dataset.focus;
   setSelection(key, false);
