@@ -2,35 +2,46 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101342">
-  <meta name="description" content="مغامرة فضائية تعليمية للأطفال — خمس مهمات ممتعة إلى القمر والمريخ">
-  <title>مغامرة فضائية — أبطال المدار</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050914">
+  <meta name="description" content="محاكي النظام الشمسي — استكشف الكواكب وأطلق مهمتك من الأرض إلى المريخ">
+  <title>مركز قيادة المدار — محاكي النظام الشمسي</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="stars" aria-hidden="true"></div>
-  <main class="app-shell">
-    <header class="topbar">
-      <a class="brand" href="#home" aria-label="أبطال المدار - الرئيسية"><span class="brand-mark">✦</span><span>أبطال <b>المدار</b></span></a>
-      <div class="top-actions"><div class="sound-pill"><span class="live-dot"></span> <span>مهمة فضائية مباشرة</span></div><button class="icon-button" id="soundToggle" aria-label="تشغيل أو إيقاف الصوت" title="الصوت">♫</button></div>
+  <main class="simulator">
+    <div id="scene" class="scene" aria-label="مشهد ثلاثي الأبعاد للنظام الشمسي"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <header class="topbar glass">
+      <a class="brand" href="#" aria-label="مركز قيادة المدار"><span class="brand-mark"><i></i><i></i><i></i></span><span><b>مركز قيادة</b><small>المدار · استكشاف الفضاء</small></span></a>
+      <div class="live-status"><span class="pulse"></span><span>المحاكاة مباشرة</span><span class="status-divider"></span><span id="missionState">جاهزون للاستكشاف</span></div>
+      <button id="soundToggle" class="top-icon" title="تشغيل أو إيقاف الصوت" aria-label="تشغيل الصوت">♫</button>
     </header>
-    <section class="screen active" id="homeScreen" aria-labelledby="homeTitle">
-      <div class="hero-copy"><div class="eyebrow"><span>🚀</span> برنامج روّاد الفضاء الصغار</div><h1 id="homeTitle">مستعدّين<br>ننطلق <em>للفضاء؟</em></h1><p class="hero-text">اربط حزامك يا بطل! خمس مهمات فضائية مليانة اكتشافات وأسرار كونية في انتظارك.</p><div class="hero-cta"><button class="primary-button" id="playButton">ابدأ المغامرة <span>←</span></button><div class="tiny-note">✦ ٥ مهمات • تعلّم والعب</div></div><div class="orbit-stats"><div><b>٥</b><span>مهمات شيّقة</span></div><i></i><div><b>∞</b><span>اكتشافات مذهلة</span></div><i></i><div><b>١</b><span>رائد فضاء شجاع</span></div></div></div>
-      <div class="hero-art" aria-label="رسمة كرتونية لصاروخ في الفضاء"><div class="planet planet-purple"></div><div class="planet planet-orange"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-moon">☾</div><div class="rocket-illustration"><div class="rocket-flame"></div><div class="rocket-body"><div class="rocket-window"></div><div class="rocket-fin fin-left"></div><div class="rocket-fin fin-right"></div></div></div><div class="floating-card"><span>✦</span><div><b>المهمة الأولى</b><small>تجميع الصاروخ</small></div></div><div class="sparkle s1">✦</div><div class="sparkle s2">✧</div><div class="sparkle s3">✦</div><div class="planet-label">وجهتنا: <b>المريخ</b> <span>↗</span></div></div>
-      <div class="home-bottom"><span>مستوحى من استكشاف الفضاء</span><span class="bottom-stars">✦　✧　✦</span><span>العلم مغامرة!</span></div>
+    <aside class="mission-panel glass" aria-label="لوحة التحكم بالمهمة">
+      <div class="panel-head"><div><div class="eyebrow"><span class="eyebrow-dot"></span> غرفة العمليات</div><h1>مركز <em>المهمة</em></h1></div><span class="panel-symbol">⌘</span></div>
+      <div class="mission-card"><div class="mission-card-top"><span class="mission-icon">✦</span><span class="mission-code">المهمة ٠١ · استطلاع</span></div><h2 id="activeTitle">استكشف جوارنا الكوني</h2><p id="activeSummary">اختر أي جرم سماوي في المشهد لتفتح ملفه العلمي، أو ابدأ رحلة تجريبية إلى المريخ.</p><div class="mission-meta"><span><i class="meta-dot cyan"></i> النظام الشمسي</span><span><i class="meta-dot orange"></i> رحلة تعليمية</span></div></div>
+      <div class="section-label"><span>معالم الرحلة</span><span class="section-count">٠٤</span></div>
+      <div class="body-list">
+        <button class="body-row selected" data-focus="earth"><span class="body-orb earth-orb"></span><span class="body-name"><b>الأرض</b><small>كوكبنا الأزرق</small></span><span class="body-distance">١ وحدة فلكية</span><span class="row-arrow">↙</span></button>
+        <button class="body-row" data-focus="moon"><span class="body-orb moon-orb"></span><span class="body-name"><b>القمر</b><small>تابع الأرض</small></span><span class="body-distance">٣٨٤ ألف كم</span><span class="row-arrow">↙</span></button>
+        <button class="body-row" data-focus="mars"><span class="body-orb mars-orb"></span><span class="body-name"><b>المريخ</b><small>الكوكب الأحمر</small></span><span class="body-distance">١٫٥٢ وحدة فلكية</span><span class="row-arrow">↙</span></button>
+        <button class="body-row" data-focus="jupiter"><span class="body-orb jupiter-orb"></span><span class="body-name"><b>المشتري</b><small>عملاق الغاز</small></span><span class="body-distance">٥٫٢ وحدة فلكية</span><span class="row-arrow">↙</span></button>
+      </div>
+      <div class="flight-card"><div class="flight-heading"><div><span class="flight-kicker">مسار الإطلاق</span><b>الأرض <span class="route-arrow">←</span> المريخ</b></div><span class="rocket-glyph">↗</span></div><div class="route-track"><span class="route-point start"></span><span class="route-line"></span><span class="route-point end"></span><span class="route-ship">◆</span></div><div class="flight-stats"><span>المدة <b id="flightTime">جاهز</b></span><span>الحالة <b class="ready-text" id="flightStatus">على المنصة</b></span></div><button id="launchButton" class="launch-button"><span>إطلاق المهمة</span><span class="launch-arrow">←</span></button><button id="abortButton" class="abort-button" hidden>إلغاء المهمة</button></div>
+      <div class="panel-bottom"><span class="connection"><i></i> اتصال آمن</span><span>الإصدار ١.٠</span></div>
+    </aside>
+    <div class="scene-title"><span class="scene-label"><i></i> محاكاة ثلاثية الأبعاد</span><h2 id="sceneTitle">النظام الشمسي</h2><p id="sceneHint">اسحب لتدوير المشهد · مرّر للتقريب</p></div>
+    <div class="camera-hint glass"><span class="drag-icon">✥</span><span>اسحب للدوران<br><small>مرّر للتقريب · زر يمين للتحريك</small></span></div>
+    <div class="bottom-bar"><div class="scale-note"><span>المسافات والأحجام مصغّرة للمحاكاة</span><span class="scale-rule"><i></i><i></i></span></div><div class="sim-controls glass"><button id="zoomOut" class="control-button" aria-label="إبعاد الكاميرا">−</button><button id="homeView" class="control-button home-control" aria-label="إعادة عرض النظام الشمسي">⌂</button><button id="zoomIn" class="control-button" aria-label="تقريب الكاميرا">+</button><span class="control-divider"></span><button id="pauseButton" class="control-button pause-control" aria-label="إيقاف الحركة مؤقتاً">Ⅱ</button><div class="speed-control"><label for="speedRange">السرعة</label><input id="speedRange" type="range" min="0" max="3" value="1" step="1"><span id="speedValue">١×</span></div></div><div class="legend"><span><i class="legend-sun"></i> الشمس</span><span><i class="legend-planet"></i> كواكب</span><span><i class="legend-orbit"></i> مدارات</span></div></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <section class="info-backdrop" id="planetModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+      <article class="info-card"><button class="modal-close" id="closeModal" aria-label="إغلاق">×</button><div class="modal-hero"><div id="modalPlanet" class="modal-planet earth-orb"></div><div><span class="modal-kicker" id="modalKicker">ملف كوكبي · ٠٣</span><h2 id="modalTitle">الأرض</h2><p id="modalSubtitle">موطننا الوحيد المعروف للحياة</p></div><span class="modal-index" id="modalIndex">٠٣</span></div><p class="modal-description" id="modalDescription"></p><div class="fact-grid"><div class="fact-stat"><span>الجاذبية</span><b id="gravityValue"></b><small>متر/ثانية²</small></div><div class="fact-stat"><span>الغلاف الجوي</span><b id="atmosphereValue"></b><small id="atmosphereNote"></small></div><div class="fact-stat wide"><span>مهمة ناسا مرتبطة</span><b id="missionValue"></b><small id="missionNote"></small></div></div><div class="modal-source"><span>اقرأ المزيد من ناسا</span><a id="nasaLink" href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener noreferrer">المصدر العلمي ↗</a></div></article>
     </section>
-    <section class="screen game-screen" id="gameScreen" aria-labelledby="levelTitle">
-      <div class="game-top"><button class="back-button" id="homeButton" aria-label="العودة للرئيسية">⌂</button><div class="level-heading"><div class="level-kicker" id="levelKicker">المهمة ١ من ٥</div><h2 id="levelTitle">تجميع الصاروخ</h2></div><div class="progress-wrap"><div class="progress-label"><span>تقدّم الرحلة</span><b id="progressText">١ / ٥</b></div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div></div></div>
-      <div class="game-card"><div class="mission-copy"><span class="mission-icon" id="missionIcon">🧩</span><div><h3 id="missionHeading">مهمتك</h3><p id="instruction">اسحب أجزاء الصاروخ إلى أماكنها الصحيحة!</p></div><span class="mission-badge" id="missionBadge">مهمة سهلة</span></div><div class="playfield" id="playfield"></div><div class="game-footer"><span id="hintText">💡 ركّز يا رائد الفضاء!</span><div class="level-dots" id="levelDots"></div></div></div>
-    </section>
-    <section class="modal-backdrop" id="successModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden><div class="modal-card"><div class="confetti" aria-hidden="true">✦　✧　✦</div><div class="modal-emoji" id="modalEmoji">🎉</div><div class="modal-tag">إنجاز رائع!</div><h2 id="modalTitle">أحسنت يا بطل!</h2><p class="modal-subtitle" id="modalSubtitle">أتممت المهمة بنجاح.</p><div class="fact-box"><span class="fact-icon">🪐</span><div><b>هل تعلم؟</b><p id="factText"></p></div></div><button class="primary-button modal-next" id="nextButton">المهمة التالية <span>←</span></button><button class="text-button" id="replayButton">إعادة المهمة</button></div></section>
-    <section class="modal-backdrop" id="completeModal" role="dialog" aria-modal="true" aria-labelledby="completeTitle" hidden><div class="modal-card"><div class="modal-emoji">🏆</div><div class="modal-tag">إنجاز أسطوري!</div><h2 id="completeTitle">أنت بطل الفضاء!</h2><p class="modal-subtitle">أكملت كل المهمات وأصبحت رائد فضاء خبيراً!</p><div class="fact-box"><span class="fact-icon">🌟</span><div><b>رحلتك كانت رائعة!</b><p>من الأرض إلى المريخ، اكتشفت أسراراً جديدة وتعلمت كيف يعمل الفضاء.</p></div></div><button class="primary-button modal-next" id="restartButton">العب من جديد <span>↻</span></button><button class="text-button" id="finishHomeButton">العودة للرئيسية</button></div></section>
+    <div class="texture-credit">خرائط الكواكب: Solar System Scope · CC BY 4.0</div>
   </main>
-  <footer class="site-footer">صُنع بحب للمستكشفين الصغار <span>✦</span> رحلة ممتعة وآمنة</footer>
+  <script type="module" src="script.js"></script>
 </body>
 </html>

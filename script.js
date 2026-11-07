@@ -1,69 +1,421 @@
-(() => {
-  'use strict';
-  const levels = [
-    { title:'تجميع الصاروخ', icon:'🧩', badge:'مهمة سهلة', instruction:'اسحب أجزاء الصاروخ إلى أماكنها الصحيحة!', hint:'💡 ابدأ بالكبسولة من أعلى الصاروخ.', fact:'عشان نطلع للفضاء، محتاجين محركات قوية جداً تتغلب على حاجة اسمها (الجاذبية الأرضية) اللي بتشدنا لتحت!' },
-    { title:'القمر الصناعي', icon:'🛰️', badge:'اختبر توقيتك', instruction:'اضغط زر إطلاق القمر الصناعي عندما يدخل الصاروخ المنطقة الخضراء!', hint:'💡 تابع الصاروخ بعينيك واضغط في اللحظة المناسبة.', fact:'الأقمار الصناعية بتلف في المدار عشان تشغل لنا الإنترنت، التليفزيون، وتعرفنا حالة الطقس!' },
-    { title:'هبوط على القمر', icon:'🌙', badge:'تحكّم بحذر', instruction:'اضغط باستمرار على زر الدفع لتبطّئ المركبة وتهبط بأمان!', hint:'💡 اضغط نبضات قصيرة قرب سطح القمر.', fact:'جاذبية القمر ضعيفة جداً! لو وزنك على الأرض 30 كيلو، على القمر هيكون 5 كيلو بس!' },
-    { title:'حزام الكويكبات', icon:'☄️', badge:'تجنّب الاصطدام', instruction:'حرّك سفينتك يميناً ويساراً لتفادي خمسة كويكبات!', hint:'💡 استخدم الأسهم أو الزرين، ويمكنك أيضاً لمس الشاشة يميناً ويساراً.', fact:'بين كوكب المريخ والمشترى في ملايين الصخور الفضائية اسمها (الكويكبات)!' },
-    { title:'هبوط على المريخ', icon:'🔴', badge:'مهمة أخيرة', instruction:'اختر الكوكب الأحمر، المريخ، لتهبط عليه بالمركبة الجوالة!', hint:'💡 أي كوكب لونه أحمر؟ اضغط عليه!', fact:'المريخ لونه أحمر عشان ترابه مليان حديد مصدي! والمشترى هو أكبر كوكب.' }
-  ];
-  const $ = s => document.querySelector(s);
-  const playfield = $('#playfield');
-  let current = 0, cleanup = () => {}, audioOn = true, audioCtx;
-  const digits = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-  const setText = (id, value) => { $(id).textContent = value; };
-  function beep(freq=660,duration=.09){ if(!audioOn)return; try { audioCtx ||= new (window.AudioContext||window.webkitAudioContext)(); const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.frequency.value=freq;g.gain.setValueAtTime(.07,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);o.start();o.stop(audioCtx.currentTime+duration); } catch(_){} }
-  function dots(){ $('#levelDots').innerHTML=levels.map((_,i)=>`<span class="${i<current?'done':i===current?'current':''}"></span>`).join(''); }
-  function loadLevel(index){
-    cleanup(); cleanup=()=>{}; current=index; const l=levels[index];
-    $('#homeScreen').classList.remove('active'); $('#gameScreen').classList.add('active');
-    setText('#levelKicker',`المهمة ${digits(index+1)} من ${digits(5)}`); setText('#levelTitle',l.title); setText('#progressText',`${digits(index+1)} / ${digits(5)}`);
-    $('#progressFill').style.width=`${(index+1)*20}%`; setText('#missionIcon',l.icon);setText('#instruction',l.instruction);setText('#hintText',l.hint);setText('#missionBadge',l.badge);dots();
-    playfield.innerHTML='';
-    [levelAssembly,levelOrbit,levelMoon,levelAsteroids,levelMars][index]();
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js';
+
+const $ = (selector) => document.querySelector(selector);
+const sceneHost = $('#scene');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050914);
+scene.fog = new THREE.FogExp2(0x050914, 0.0025);
+
+const camera = new THREE.PerspectiveCamera(43, window.innerWidth / window.innerHeight, 0.1, 1300);
+camera.position.set(-3, 14, 28);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.15;
+sceneHost.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.055;
+controls.minDistance = 5.5;
+controls.maxDistance = 80;
+controls.maxPolarAngle = Math.PI * 0.91;
+controls.target.set(0, 0, 0);
+controls.rotateSpeed = 0.62;
+controls.zoomSpeed = 0.85;
+controls.panSpeed = 0.65;
+
+const ambient = new THREE.HemisphereLight(0x7899d1, 0x19101a, 0.58);
+scene.add(ambient);
+const sunLight = new THREE.PointLight(0xffd6a0, 330, 0, 1.3);
+sunLight.position.set(0, 0, 0);
+scene.add(sunLight);
+
+const textureLoader = new THREE.TextureLoader();
+textureLoader.setCrossOrigin('anonymous');
+const textureUrls = {
+  earth: 'https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg',
+  moon: 'https://www.solarsystemscope.com/textures/download/2k_moon.jpg',
+  mars: 'https://www.solarsystemscope.com/textures/download/2k_mars.jpg',
+  jupiter: 'https://www.solarsystemscope.com/textures/download/2k_jupiter.jpg'
+};
+const texCache = new Map();
+function getTexture(key, fallbackColor) {
+  if (!texCache.has(key)) {
+    const texture = textureLoader.load(textureUrls[key], undefined, undefined, () => {
+      const fallback = new THREE.DataTexture(new Uint8Array([fallbackColor[0], fallbackColor[1], fallbackColor[2], 255]), 1, 1);
+      fallback.colorSpace = THREE.SRGBColorSpace;
+      fallback.needsUpdate = true;
+      const target = texCache.get(key);
+      if (target) target.image = fallback.image;
+    });
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    texCache.set(key, texture);
   }
-  function win(){cleanup();cleanup=()=>{};beep(880,.18);setText('#modalSubtitle',`أتممت مهمة ${levels[current].title} بنجاح!`);setText('#factText',levels[current].fact);$('#modalEmoji').textContent=['🚀','🛰️','🌙','☄️','🔴'][current];$('#nextButton').innerHTML=current===4?'إنهاء الرحلة <span>✦</span>':'المهمة التالية <span>←</span>';$('#successModal').hidden=false;}
-  function showHome(){cleanup();cleanup=()=>{};$('#successModal').hidden=true;$('#completeModal').hidden=true;$('#gameScreen').classList.remove('active');$('#homeScreen').classList.add('active');}
-  function levelAssembly(){
-    playfield.innerHTML=`<div class="assembly-area"><div class="rocket-slots"><div class="slot capsule" data-part="capsule"><span>الكبسولة</span></div><div class="slot tank" data-part="tank"><span>خزان الوقود</span></div><div class="slot engine" data-part="engine"><span>المحرك</span></div></div></div><div class="part-tray"><div class="part-card" data-part="engine"><span class="part-art">🔥</span><small>المحرك</small></div><div class="part-card" data-part="capsule"><span class="part-art">🧑‍🚀</span><small>الكبسولة</small></div><div class="part-card" data-part="tank"><span class="part-art">🛢️</span><small>خزان الوقود</small></div></div>`;
-    let count=0; const cards=[...playfield.querySelectorAll('.part-card')];
-    cards.forEach(card=>card.addEventListener('pointerdown',e=>{if(card.dataset.done)return;e.preventDefault();const field=playfield.getBoundingClientRect(),r=card.getBoundingClientRect();card.classList.add('dragging');card.style.position='absolute';card.style.zIndex='5';card.style.width=`${r.width}px`;card.style.left=`${r.left-field.left}px`;card.style.top=`${r.top-field.top}px`;card.style.margin='0';const ox=e.clientX-r.left,oy=e.clientY-r.top;card.setPointerCapture(e.pointerId);
-      const move=ev=>{card.style.left=`${ev.clientX-field.left-ox}px`;card.style.top=`${ev.clientY-field.top-oy}px`;};
-      const up=ev=>{card.removeEventListener('pointermove',move);card.removeEventListener('pointerup',up);card.classList.remove('dragging');const slot=[...playfield.querySelectorAll('.slot')].find(s=>s.dataset.part===card.dataset.part);const sr=slot.getBoundingClientRect(),cr=card.getBoundingClientRect();if(Math.abs((sr.left+sr.width/2)-(cr.left+cr.width/2))<100&&Math.abs((sr.top+sr.height/2)-(cr.top+cr.height/2))<90){slot.classList.add('filled');slot.innerHTML=`<span>${card.dataset.part==='capsule'?'🧑‍🚀':card.dataset.part==='tank'?'🛢️':'🔥'}</span>`;card.dataset.done='1';card.style.display='none';count++;beep(550+count*100,.08);if(count===3)setTimeout(win,450);}else{card.style.cssText='';}};
-      card.addEventListener('pointermove',move);card.addEventListener('pointerup',up);}));
+  return texCache.get(key);
+}
+
+function makeStars() {
+  const count = 7200;
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const palette = [new THREE.Color(0xffffff), new THREE.Color(0xa8c7ff), new THREE.Color(0xffdcb1), new THREE.Color(0x9ff5f4)];
+  for (let i = 0; i < count; i += 1) {
+    const radius = 280 + Math.random() * 690;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+    positions[i * 3 + 1] = radius * Math.cos(phi);
+    positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+    const color = palette[Math.floor(Math.random() * palette.length)];
+    const brightness = 0.52 + Math.random() * 0.48;
+    colors[i * 3] = color.r * brightness;
+    colors[i * 3 + 1] = color.g * brightness;
+    colors[i * 3 + 2] = color.b * brightness;
   }
-  function levelOrbit(){
-    playfield.innerHTML=`<div class="launch-scene"><div class="launch-track"></div><div class="orbit-zone">🟢 المدار — اضغط هنا!</div><div class="launch-rocket">🚀</div><div class="launch-status">استعد لإطلاق القمر الصناعي</div><button class="deploy-button">إطلاق القمر 🛰️</button></div>`;
-    const rocket=$('.launch-rocket'),button=$('.deploy-button'),status=$('.launch-status');let start=performance.now(),active=true,raf;
-    const tick=t=>{if(!active)return;const dur=9000,phase=((t-start)%dur)/dur;rocket.style.bottom=`${29+phase*230}px`;raf=requestAnimationFrame(tick);};raf=requestAnimationFrame(tick);
-    button.addEventListener('click',()=>{if(!active)return;const r=rocket.getBoundingClientRect(),z=$('.orbit-zone').getBoundingClientRect(),center=r.top+r.height/2;if(center>z.top-25&&center<z.bottom+25){active=false;button.disabled=true;status.textContent='رائع! القمر الصناعي دخل مداره!';rocket.textContent='🛰️';beep(900,.2);setTimeout(win,650);}else{status.textContent=center>z.bottom?'لسه بدري! انتظر حتى يصل للمنطقة الخضراء.':'فاتتك اللحظة! حاول مرة أخرى.';beep(230,.12);}});
-    cleanup=()=>{active=false;cancelAnimationFrame(raf);};
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const material = new THREE.PointsMaterial({ size: 1.05, vertexColors: true, sizeAttenuation: false, transparent: true, opacity: 0.9, depthWrite: false });
+  const stars = new THREE.Points(geometry, material);
+  scene.add(stars);
+  return stars;
+}
+const starfield = makeStars();
+
+function makeGlowTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 256;
+  const context = canvas.getContext('2d');
+  const gradient = context.createRadialGradient(128, 128, 3, 128, 128, 128);
+  gradient.addColorStop(0, 'rgba(255,232,173,0.96)');
+  gradient.addColorStop(0.11, 'rgba(255,183,93,0.5)');
+  gradient.addColorStop(0.38, 'rgba(255,142,54,0.12)');
+  gradient.addColorStop(1, 'rgba(255,115,38,0)');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 256, 256);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+const sunGroup = new THREE.Group();
+scene.add(sunGroup);
+const sun = new THREE.Mesh(new THREE.SphereGeometry(2.12, 64, 48), new THREE.MeshBasicMaterial({ color: 0xffd47c }));
+sun.name = 'sun';
+sunGroup.add(sun);
+const sunHalo = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeGlowTexture(), color: 0xffb457, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.9 }));
+sunHalo.scale.set(12, 12, 1);
+sunGroup.add(sunHalo);
+const sunHaloFar = new THREE.Sprite(new THREE.SpriteMaterial({ map: sunHalo.material.map, color: 0xffa23f, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.24 }));
+sunHaloFar.scale.set(21, 21, 1);
+sunGroup.add(sunHaloFar);
+const sunCore = new THREE.Mesh(new THREE.SphereGeometry(2.16, 40, 32), new THREE.MeshBasicMaterial({ color: 0xffe6a6, transparent: true, opacity: 0.15, side: THREE.BackSide }));
+sunGroup.add(sunCore);
+
+const planetData = {
+  sun: { name: 'الشمس', subtitle: 'النجم الذي يمنح مجموعتنا الضوء والطاقة', index: '٠١', gravity: '٢٧٤', atmosphere: 'هيدروجين وهيليوم', atmosphereNote: 'بلا سطح صلب', mission: 'مرصد باركر الشمسي', missionNote: 'اقترب من الهالة الشمسية لدراسة الرياح الشمسية.', description: 'الشمس نجم متوسط الحجم يقع في مركز نظامنا الشمسي. جاذبيتها تحفظ الكواكب في مداراتها، والطاقة الناتجة في قلبها تمد الأرض بالضوء والحرارة. ليست كرة نار مشتعلة؛ إنها كرة من البلازما شديدة السخونة.', url: 'https://science.nasa.gov/sun/' },
+  earth: { name: 'الأرض', subtitle: 'موطننا الوحيد المعروف للحياة', index: '٠٣', gravity: '٩٫٨', atmosphere: '٧٨٪ نيتروجين · ٢١٪ أكسجين', atmosphereNote: 'محيطات تغطي ٧١٪ من السطح', mission: 'منظومة رصد الأرض التابعة لناسا', missionNote: 'أقمار صناعية تراقب المحيطات والغلاف الجوي والجليد.', description: 'الأرض هي الكوكب الثالث من الشمس، وعلى سطحها ماء سائل وفير وغلاف جوي غني بالأكسجين. يستغرق ضوء الشمس نحو ٨ دقائق ليصل إلينا، وتكمل الأرض دورة حول محورها خلال ٢٣٫٩ ساعة تقريباً.', url: 'https://science.nasa.gov/earth/facts/' },
+  moon: { name: 'القمر', subtitle: 'رفيق الأرض الصخري في الفضاء', index: '٠٠', gravity: '١٫٦٢', atmosphere: 'إكسوسفير رقيق جداً', atmosphereNote: 'ليس له غلاف جوي كثيف', mission: 'أبولو · أرتيمس', missionNote: 'أعادت أبولو رواداً إلى السطح؛ وتواصل أرتيمس استكشاف القمر.', description: 'القمر تابع الأرض الطبيعي، ويبعد عنها في المتوسط نحو ٣٨٤ ألف كيلومتر. لا يحميه هواء كثيف، لذلك بقيت فوهات الاصطدام على سطحه محفوظة لمليارات السنين. تبلغ جاذبيته نحو سدس جاذبية الأرض.', url: 'https://science.nasa.gov/moon/' },
+  mars: { name: 'المريخ', subtitle: 'الكوكب الأحمر وعالم الروبوتات', index: '٠٤', gravity: '٣٫٧١', atmosphere: 'ثاني أكسيد الكربون غالباً', atmosphereNote: 'غلاف رقيق وبارد', mission: 'بيرسيفيرانس · كيوريوسيتي', missionNote: 'مركبتان جوالتان تدرسان صخور المريخ وتاريخه المائي.', description: 'المريخ عالم صخري بارد، ولونه المحمر يأتي من أكاسيد الحديد في تربته. تشير الأدلة إلى أن مياهه السطحية القديمة كانت أكثر وفرة. تستكشف مركبات ناسا سطحه بحثاً عن دلائل على بيئات قديمة صالحة للحياة.', url: 'https://science.nasa.gov/mars/' },
+  jupiter: { name: 'المشتري', subtitle: 'عملاق غازي بعواصف هائلة', index: '٠٥', gravity: '٢٣٫١', atmosphere: 'هيدروجين وهيليوم', atmosphereNote: 'لا يملك سطحاً صلباً', mission: 'جونو · يوروبا كليبر', missionNote: 'جونو تدرس المشتري؛ ويوروبا كليبر تبحث في قمره الجليدي.', description: 'المشتري أكبر كواكب النظام الشمسي، ويدور حوله جو من الهيدروجين والهيليوم. البقعة الحمراء العظيمة عاصفة أضخم من الأرض. قاس مسبار جونو مجاله الجاذبي والمغناطيسي وكشف تفاصيل جديدة عن داخل الكوكب.', url: 'https://science.nasa.gov/jupiter/jupiter-facts/' }
+};
+const clickableBodies = [];
+const bodyMap = {};
+const orbitObjects = [];
+const loaderColor = { earth: [48, 118, 183], moon: [137, 139, 148], mars: [182, 74, 51], jupiter: [202, 137, 100] };
+function createPlanet(key, radius, orbitRadius, period, phase, rotation, parent = scene, textureKey = key) {
+  const pivot = new THREE.Group();
+  parent.add(pivot);
+  const material = new THREE.MeshStandardMaterial({
+    map: textureKey in textureUrls ? getTexture(textureKey, loaderColor[textureKey]) : null,
+    color: 0xffffff,
+    roughness: key === 'jupiter' ? 0.82 : 0.95,
+    metalness: 0
+  });
+  if (!material.map) material.color.set(0x999999);
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 48, 36), material);
+  mesh.name = key;
+  mesh.rotation.z = key === 'earth' ? THREE.MathUtils.degToRad(23.4) : 0.04;
+  pivot.add(mesh);
+  const orbit = new THREE.Mesh(new THREE.TorusGeometry(orbitRadius, 0.008, 6, 240), new THREE.MeshBasicMaterial({ color: 0x99b3d0, transparent: true, opacity: 0.2 }));
+  orbit.rotation.x = Math.PI / 2;
+  orbit.position.y = -0.07;
+  scene.add(orbit);
+  orbitObjects.push(orbit);
+  const body = { key, mesh, pivot, orbitRadius, period, phase, rotation, basePosition: new THREE.Vector3(), radius };
+  pivot.position.set(Math.cos(phase) * orbitRadius, 0, Math.sin(phase) * orbitRadius);
+  body.basePosition.copy(pivot.position);
+  bodyMap[key] = body;
+  clickableBodies.push(mesh);
+  return body;
+}
+const earth = createPlanet('earth', 0.73, 7.4, 365.25, -0.56, 0.42);
+const mars = createPlanet('mars', 0.55, 10.4, 687, 2.38, 0.35);
+const jupiter = createPlanet('jupiter', 1.34, 14.6, 4331, 0.76, 0.16);
+const moon = createPlanet('moon', 0.205, 1.18, 27.3, 2.1, 0.045, earth.pivot);
+const moonOrbit = new THREE.Mesh(new THREE.TorusGeometry(1.18, 0.008, 6, 160), new THREE.MeshBasicMaterial({ color: 0xc2d2e7, transparent: true, opacity: 0.34 }));
+moonOrbit.rotation.x = Math.PI / 2;
+earth.pivot.add(moonOrbit);
+
+function createRocket() {
+  const group = new THREE.Group();
+  const silver = new THREE.MeshStandardMaterial({ color: 0xe8eef8, metalness: 0.68, roughness: 0.27 });
+  const noseMat = new THREE.MeshStandardMaterial({ color: 0xff765f, metalness: 0.26, roughness: 0.3 });
+  const darkMetal = new THREE.MeshStandardMaterial({ color: 0x283d58, metalness: 0.75, roughness: 0.34 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 1.1, 20), silver);
+  body.position.y = 0.05;
+  group.add(body);
+  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.42, 20), noseMat);
+  nose.position.y = 0.81;
+  group.add(nose);
+  const engine = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.19, 0.2, 18), darkMetal);
+  engine.position.y = -0.59;
+  group.add(engine);
+  for (let i = 0; i < 3; i += 1) {
+    const fin = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.52, 4), noseMat);
+    fin.position.y = -0.42;
+    fin.rotation.z = Math.PI;
+    fin.rotation.y = i * Math.PI * 2 / 3;
+    fin.scale.set(0.72, 1, 0.34);
+    group.add(fin);
   }
-  function levelMoon(){
-    playfield.innerHTML=`<div class="moon-scene"><div class="altitude-label">ارتفاع المركبة <b id="altNum">١٠٠</b>%</div><div class="altitude-bar"><div class="altitude-fill"></div></div><div class="lander">🛸</div><div class="landing-zone"></div><div class="moon-surface"><div class="crater c1"></div><div class="crater c2"></div></div><button class="thruster-button">🔥 اضغط باستمرار للدفع</button></div>`;
-    let altitude=100,done=false,raf,last=performance.now(),holding=false;const lander=$('.lander'),fill=$('.altitude-fill'),btn=$('.thruster-button'),label=$('#altNum');
-    const down=e=>{e.preventDefault();holding=true;btn.classList.add('active');};const up=()=>{holding=false;btn.classList.remove('active');};btn.addEventListener('pointerdown',down);window.addEventListener('pointerup',up);btn.addEventListener('pointerleave',up);
-    const tick=t=>{if(done)return;const dt=Math.min((t-last)/1000,.06);last=t;altitude-=dt*(holding?5:12);if(altitude<=0){altitude=0;done=true;lander.style.top='';lander.textContent='💥';setText('#hintText','💫 ارتطمت المركبة! أعد المحاولة مع الدفع لفترة أطول.');setTimeout(()=>{if(current===2&&!$('#successModal').hidden)return;loadLevel(2);},1300);return;}label.textContent=digits(Math.ceil(altitude));fill.style.width=`${altitude}%`;lander.style.top=`${37+(100-altitude)*1.8}px`;if(altitude<13){done=true;lander.textContent='🛸';lander.style.top='';beep(780,.18);setTimeout(win,500);return;}raf=requestAnimationFrame(tick);};raf=requestAnimationFrame(tick);
-    cleanup=()=>{done=true;cancelAnimationFrame(raf);window.removeEventListener('pointerup',up);};
+  const window = new THREE.Mesh(new THREE.SphereGeometry(0.073, 16, 12), new THREE.MeshStandardMaterial({ color: 0x73d9ff, emissive: 0x1678aa, emissiveIntensity: 1.2, metalness: 0.25, roughness: 0.15 }));
+  window.position.set(0, 0.32, 0.148);
+  group.add(window);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.65, 16), new THREE.MeshBasicMaterial({ color: 0xff9c4c, transparent: true, opacity: 0.86 }));
+  flame.position.y = -0.98;
+  flame.rotation.z = Math.PI;
+  group.add(flame);
+  const innerFlame = new THREE.Mesh(new THREE.ConeGeometry(0.085, 0.39, 12), new THREE.MeshBasicMaterial({ color: 0xffe8a1, transparent: true, opacity: 0.95 }));
+  innerFlame.position.y = -0.86;
+  innerFlame.rotation.z = Math.PI;
+  group.add(innerFlame);
+  group.scale.setScalar(0.72);
+  group.visible = false;
+  scene.add(group);
+  return { group, flame, innerFlame };
+}
+const rocket = createRocket();
+
+const raycaster = new THREE.Raycaster();
+raycaster.params.Points.threshold = 1;
+const pointer = new THREE.Vector2();
+let pointerStart = null;
+let selected = 'earth';
+let paused = false;
+let speed = 1;
+let elapsed = 0;
+let activeMission = null;
+let toastTimer;
+let soundEnabled = true;
+let audioContext;
+const clock = new THREE.Clock();
+
+function formatArabic(number) { return String(number).replace(/[0-9]/g, digit => '٠١٢٣٤٥٦٧٨٩'[digit]); }
+function playTone(frequency = 520, duration = 0.1) {
+  if (!soundEnabled) return;
+  try {
+    audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.connect(gain); gain.connect(audioContext.destination);
+    oscillator.type = 'sine'; oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.045, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+    oscillator.start(); oscillator.stop(audioContext.currentTime + duration);
+  } catch (_) { /* Web Audio is an optional enhancement. */ }
+}
+function showToast(message) {
+  const toast = $('#toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+function getWorldPosition(key) {
+  const body = bodyMap[key];
+  const position = new THREE.Vector3();
+  body.mesh.getWorldPosition(position);
+  return position;
+}
+function setSelection(key, openModal = true) {
+  if (!planetData[key]) return;
+  selected = key;
+  document.querySelectorAll('.body-row').forEach(row => row.classList.toggle('selected', row.dataset.focus === key));
+  $('#activeTitle').textContent = key === 'sun' ? 'استكشف قلب النظام الشمسي' : `استكشف ${planetData[key].name}`;
+  $('#activeSummary').textContent = key === 'sun' ? 'مصدر الضوء والطاقة؛ اضغط لقراءة ملف النجم المركزي.' : `اقترب من ${planetData[key].name} وافتح ملفه العلمي لمعرفة أسراره ومهمات ناسا المرتبطة به.`;
+  $('#sceneTitle').textContent = planetData[key].name;
+  if (openModal) openPlanetModal(key);
+}
+function openPlanetModal(key) {
+  const data = planetData[key];
+  $('#modalPlanet').className = `modal-planet ${key}-orb`;
+  $('#modalKicker').textContent = `ملف سماوي · ${data.index}`;
+  $('#modalTitle').textContent = data.name;
+  $('#modalSubtitle').textContent = data.subtitle;
+  $('#modalIndex').textContent = data.index;
+  $('#modalDescription').textContent = data.description;
+  $('#gravityValue').textContent = data.gravity;
+  $('#atmosphereValue').textContent = data.atmosphere;
+  $('#atmosphereNote').textContent = data.atmosphereNote;
+  $('#missionValue').textContent = data.mission;
+  $('#missionNote').textContent = data.missionNote;
+  $('#nasaLink').href = data.url;
+  $('#planetModal').hidden = false;
+  playTone(680, 0.08);
+}
+function closeModal() { $('#planetModal').hidden = true; }
+function focusOn(key) {
+  const point = key === 'sun' ? new THREE.Vector3() : getWorldPosition(key);
+  const distance = key === 'jupiter' ? 5.4 : key === 'sun' ? 11 : key === 'moon' ? 2.6 : 4.0;
+  const direction = new THREE.Vector3(0.58, 0.48, 0.65).normalize();
+  controls.target.copy(point);
+  camera.position.copy(point).addScaledVector(direction, distance);
+  controls.minDistance = key === 'sun' ? 4.8 : 1.2;
+  controls.update();
+}
+
+const homeCameraPosition = new THREE.Vector3(-3, 14, 28);
+const homeTarget = new THREE.Vector3(0, 0, 0);
+document.querySelectorAll('.body-row').forEach(row => row.addEventListener('click', () => {
+  const key = row.dataset.focus;
+  setSelection(key, false);
+  focusOn(key);
+  openPlanetModal(key);
+}));
+$('#closeModal').addEventListener('click', closeModal);
+$('#planetModal').addEventListener('click', event => { if (event.target === $('#planetModal')) closeModal(); });
+window.addEventListener('keydown', event => { if (event.key === 'Escape') closeModal(); });
+
+renderer.domElement.addEventListener('pointerdown', event => { pointerStart = { x: event.clientX, y: event.clientY }; });
+renderer.domElement.addEventListener('pointerup', event => {
+  if (!pointerStart || Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 5) { pointerStart = null; return; }
+  pointerStart = null;
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects([...clickableBodies, sun], false);
+  if (hits.length) {
+    const key = hits[0].object === sun ? 'sun' : hits[0].object.name;
+    setSelection(key, true);
   }
-  function levelAsteroids(){
-    playfield.innerHTML=`<div class="asteroid-scene"><div class="lane-mark"></div><div class="asteroid-counter">الكويكبات: <b>٠ / ٥</b></div><div class="ship">🚀</div><div class="dodge-controls"><button data-dir="-1" aria-label="تحرك يساراً">←</button><button data-dir="1" aria-label="تحرك يميناً">→</button></div></div>`;
-    const scene=$('.asteroid-scene'),ship=$('.ship'),counter=$('.asteroid-counter b');let lane=1,hit=0,live=true,objs=[],raf,last=performance.now(),spawn=0;
-    const positions=[20,50,80];function shift(d){lane=Math.max(0,Math.min(2,lane+d));ship.style.left=`${positions[lane]}%`;}
-    playfield.querySelectorAll('[data-dir]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();shift(+b.dataset.dir);});});
-    scene.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=scene.getBoundingClientRect();shift(e.clientX<r.left+r.width/2?-1:1);});
-    const key=e=>{if(e.key==='ArrowLeft'||e.key==='a')shift(-1);if(e.key==='ArrowRight'||e.key==='d')shift(1);};window.addEventListener('keydown',key);
-    const makeRock=()=>{const el=document.createElement('div');el.className='asteroid';el.textContent=['☄️','🪨','☄️'][Math.floor(Math.random()*3)];const laneAt=Math.floor(Math.random()*3);el.dataset.lane=laneAt;el.style.left=`${positions[laneAt]}%`;scene.appendChild(el);objs.push({el,lane:laneAt,y:-48});};
-    const tick=t=>{if(!live)return;const dt=Math.min((t-last)/1000,.06);last=t;spawn+=dt;if(spawn>1.22&&hit<5){spawn=0;makeRock();}objs=objs.filter(o=>{o.y+=dt*180;o.el.style.top=`${o.y}px`;if(o.y>scene.clientHeight-102&&o.y<scene.clientHeight-38&&o.lane===lane){live=false;o.el.textContent='💥';setText('#hintText','اصطدمت بكويكب! حاول تفاديه في المرة القادمة.');setTimeout(()=>{if(current===3&&!$('#successModal').hidden)return;loadLevel(3);},1100);return true;}if(o.y>scene.clientHeight){o.el.remove();hit++;counter.textContent=`${digits(hit)} / ${digits(5)}`;beep(500+hit*50,.07);if(hit>=5){live=false;setTimeout(win,350);}return false;}return true;});if(live)raf=requestAnimationFrame(tick);};raf=requestAnimationFrame(tick);
-    cleanup=()=>{live=false;cancelAnimationFrame(raf);window.removeEventListener('keydown',key);};
+});
+
+function launchMission() {
+  if (activeMission) return;
+  closeModal();
+  const start = getWorldPosition('earth').clone();
+  const target = getWorldPosition('mars').clone();
+  activeMission = { start, target, progress: 0, duration: 13 };
+  rocket.group.visible = true;
+  $('#launchButton').disabled = true;
+  $('#abortButton').hidden = false;
+  $('#missionState').textContent = 'المركبة في طريقها إلى المريخ';
+  $('#flightStatus').textContent = 'انطلقت';
+  $('#flightStatus').style.color = '#83e3ee';
+  $('#flightTime').textContent = '٠٠:٠٠';
+  $('.route-ship').style.right = '8px';
+  playTone(390, 0.22);
+  showToast('انطلقت المركبة! تابع مسارها بين الأرض والمريخ.');
+}
+function finishMission() {
+  activeMission = null;
+  rocket.group.visible = false;
+  $('#launchButton').disabled = false;
+  $('#abortButton').hidden = true;
+  $('#missionState').textContent = 'اكتملت المهمة بنجاح';
+  $('#flightStatus').textContent = 'اكتملت';
+  $('#flightStatus').style.color = '#83e3a9';
+  $('#flightTime').textContent = '٠٠:١٣';
+  $('.route-ship').style.right = 'calc(100% - 18px)';
+  playTone(790, 0.23);
+  showToast('وصلت المركبة إلى المريخ بنجاح. افتح ملف المريخ لمعرفة المزيد.');
+}
+function abortMission() {
+  if (!activeMission) return;
+  activeMission = null;
+  rocket.group.visible = false;
+  $('#launchButton').disabled = false;
+  $('#abortButton').hidden = true;
+  $('#missionState').textContent = 'جاهزون للاستكشاف';
+  $('#flightStatus').textContent = 'أُلغيت';
+  $('#flightStatus').style.color = '#ff957e';
+  $('#flightTime').textContent = 'جاهز';
+  $('.route-ship').style.right = '8px';
+  showToast('تم إلغاء الرحلة. يمكنك الإطلاق مجدداً في أي وقت.');
+}
+$('#launchButton').addEventListener('click', launchMission);
+$('#abortButton').addEventListener('click', abortMission);
+$('#pauseButton').addEventListener('click', () => {
+  paused = !paused;
+  $('#pauseButton').textContent = paused ? '▶' : 'Ⅱ';
+  $('#pauseButton').setAttribute('aria-label', paused ? 'استئناف الحركة' : 'إيقاف الحركة مؤقتاً');
+  $('#missionState').textContent = paused ? 'المحاكاة متوقفة مؤقتاً' : (activeMission ? 'المركبة في طريقها إلى المريخ' : 'جاهزون للاستكشاف');
+});
+$('#speedRange').addEventListener('input', event => {
+  speed = [0, 0.5, 1, 2][Number(event.target.value)];
+  $('#speedValue').textContent = `${formatArabic(speed)}×`;
+});
+$('#zoomIn').addEventListener('click', () => { camera.position.addScaledVector(camera.position.clone().sub(controls.target).normalize(), -2); controls.update(); });
+$('#zoomOut').addEventListener('click', () => { camera.position.addScaledVector(camera.position.clone().sub(controls.target).normalize(), 2); controls.update(); });
+$('#homeView').addEventListener('click', () => { closeModal(); controls.target.copy(homeTarget); camera.position.copy(homeCameraPosition); controls.minDistance = 5.5; selected = ''; setSelection('earth', false); $('#sceneTitle').textContent = 'النظام الشمسي'; controls.update(); });
+$('#soundToggle').addEventListener('click', event => {
+  soundEnabled = !soundEnabled;
+  event.currentTarget.textContent = soundEnabled ? '♫' : '♪';
+  event.currentTarget.setAttribute('aria-label', soundEnabled ? 'إيقاف الصوت' : 'تشغيل الصوت');
+  if (soundEnabled) playTone(620, 0.08);
+});
+
+const resizeObserver = new ResizeObserver(() => {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, width < 700 ? 1.5 : 2));
+});
+resizeObserver.observe(sceneHost);
+
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = Math.min(clock.getDelta(), 0.04);
+  const simulationDelta = paused ? 0 : delta * speed;
+  elapsed += simulationDelta;
+  for (const key of ['earth', 'mars', 'jupiter']) {
+    const body = bodyMap[key];
+    const angularRate = (Math.PI * 2 / body.period) * 7.8;
+    const angle = body.phase + elapsed * angularRate;
+    body.pivot.position.set(Math.cos(angle) * body.orbitRadius, 0, Math.sin(angle) * body.orbitRadius);
+    body.mesh.rotation.y += simulationDelta * body.rotation;
   }
-  function levelMars(){
-    playfield.innerHTML=`<div class="mars-scene"><div class="planet-caption">أيّ كوكب هو المريخ؟</div><div class="mars-ground"></div><button class="planet-choice" data-answer="mars" aria-label="الكوكب الأحمر: المريخ"><span class="planet-ball red"></span><span>المريخ</span></button><button class="planet-choice" data-answer="blue" aria-label="كوكب أزرق"><span class="planet-ball blue"></span><span>نبتون</span></button><button class="planet-choice" data-answer="ring" aria-label="كوكب ذو حلقات"><span class="planet-ball ringed"></span><span>زحل</span></button><div class="rover">🚙</div></div>`;
-    playfield.querySelectorAll('.planet-choice').forEach(btn=>btn.addEventListener('click',()=>{if(btn.dataset.answer==='mars'){btn.classList.add('selected');$('.rover').style.display='block';setText('#hintText','اختيار رائع! هبطت المركبة الجوالة على المريخ!');beep(880,.18);setTimeout(win,800);}else{setText('#hintText','جرّب مرة أخرى! ابحث عن الكوكب الأحمر.');btn.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:260});beep(240,.1);}}));
+  moon.mesh.rotation.y += simulationDelta * moon.rotation;
+  sun.rotation.y += simulationDelta * 0.035;
+  starfield.rotation.y += simulationDelta * 0.0005;
+  sunHalo.material.opacity = 0.83 + Math.sin(performance.now() * 0.00065) * 0.08;
+  if (activeMission && !paused) {
+    activeMission.progress += delta / activeMission.duration;
+    const t = Math.min(activeMission.progress, 1);
+    const point = new THREE.Vector3().lerpVectors(activeMission.start, activeMission.target, t);
+    point.y += Math.sin(t * Math.PI) * 3.6;
+    rocket.group.position.copy(point);
+    const tangent = new THREE.Vector3().subVectors(activeMission.target, activeMission.start);
+    tangent.y = Math.cos(t * Math.PI) * 3.6;
+    rocket.group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tangent.normalize());
+    const flicker = 0.82 + Math.random() * 0.38;
+    rocket.flame.scale.setScalar(flicker);
+    rocket.innerFlame.scale.setScalar(0.75 + Math.random() * 0.4);
+    $('#flightTime').textContent = `٠٠:${formatArabic(Math.min(13, Math.floor(t * 13)).toString().padStart(2, '0'))}`;
+    $('.route-ship').style.right = `${8 + t * 72}%`;
+    if (t >= 1) finishMission();
   }
-  $('#playButton').addEventListener('click',()=>{beep();loadLevel(0);});$('#homeButton').addEventListener('click',showHome);
-  $('#nextButton').addEventListener('click',()=>{ $('#successModal').hidden=true;if(current===4){$('#completeModal').hidden=false;}else loadLevel(current+1); });
-  $('#replayButton').addEventListener('click',()=>{$('#successModal').hidden=true;loadLevel(current);});
-  $('#restartButton').addEventListener('click',()=>{$('#completeModal').hidden=true;loadLevel(0);});$('#finishHomeButton').addEventListener('click',showHome);
-  $('#soundToggle').addEventListener('click',e=>{audioOn=!audioOn;e.currentTarget.textContent=audioOn?'♫':'♪';e.currentTarget.setAttribute('aria-label',audioOn?'إيقاف الصوت':'تشغيل الصوت');if(audioOn)beep();});
-})();
+  controls.update();
+  renderer.render(scene, camera);
+}
+setSelection('earth', false);
+animate();
