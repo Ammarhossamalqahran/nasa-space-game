@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101342">
+  <meta name="description" content="مغامرة فضائية تعليمية للأطفال — خمس مهمات ممتعة إلى القمر والمريخ">
+  <title>مغامرة فضائية — أبطال المدار</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="أبطال المدار - الرئيسية"><span class="brand-mark">✦</span><span>أبطال <b>المدار</b></span></a>
+      <div class="top-actions"><div class="sound-pill"><span class="live-dot"></span> <span>مهمة فضائية مباشرة</span></div><button class="icon-button" id="soundToggle" aria-label="تشغيل أو إيقاف الصوت" title="الصوت">♫</button></div>
+    </header>
+    <section class="screen active" id="homeScreen" aria-labelledby="homeTitle">
+      <div class="hero-copy"><div class="eyebrow"><span>🚀</span> برنامج روّاد الفضاء الصغار</div><h1 id="homeTitle">مستعدّين<br>ننطلق <em>للفضاء؟</em></h1><p class="hero-text">اربط حزامك يا بطل! خمس مهمات فضائية مليانة اكتشافات وأسرار كونية في انتظارك.</p><div class="hero-cta"><button class="primary-button" id="playButton">ابدأ المغامرة <span>←</span></button><div class="tiny-note">✦ ٥ مهمات • تعلّم والعب</div></div><div class="orbit-stats"><div><b>٥</b><span>مهمات شيّقة</span></div><i></i><div><b>∞</b><span>اكتشافات مذهلة</span></div><i></i><div><b>١</b><span>رائد فضاء شجاع</span></div></div></div>
+      <div class="hero-art" aria-label="رسمة كرتونية لصاروخ في الفضاء"><div class="planet planet-purple"></div><div class="planet planet-orange"></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-moon">☾</div><div class="rocket-illustration"><div class="rocket-flame"></div><div class="rocket-body"><div class="rocket-window"></div><div class="rocket-fin fin-left"></div><div class="rocket-fin fin-right"></div></div></div><div class="floating-card"><span>✦</span><div><b>المهمة الأولى</b><small>تجميع الصاروخ</small></div></div><div class="sparkle s1">✦</div><div class="sparkle s2">✧</div><div class="sparkle s3">✦</div><div class="planet-label">وجهتنا: <b>المريخ</b> <span>↗</span></div></div>
+      <div class="home-bottom"><span>مستوحى من استكشاف الفضاء</span><span class="bottom-stars">✦　✧　✦</span><span>العلم مغامرة!</span></div>
+    </section>
+    <section class="screen game-screen" id="gameScreen" aria-labelledby="levelTitle">
+      <div class="game-top"><button class="back-button" id="homeButton" aria-label="العودة للرئيسية">⌂</button><div class="level-heading"><div class="level-kicker" id="levelKicker">المهمة ١ من ٥</div><h2 id="levelTitle">تجميع الصاروخ</h2></div><div class="progress-wrap"><div class="progress-label"><span>تقدّم الرحلة</span><b id="progressText">١ / ٥</b></div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div></div></div>
+      <div class="game-card"><div class="mission-copy"><span class="mission-icon" id="missionIcon">🧩</span><div><h3 id="missionHeading">مهمتك</h3><p id="instruction">اسحب أجزاء الصاروخ إلى أماكنها الصحيحة!</p></div><span class="mission-badge" id="missionBadge">مهمة سهلة</span></div><div class="playfield" id="playfield"></div><div class="game-footer"><span id="hintText">💡 ركّز يا رائد الفضاء!</span><div class="level-dots" id="levelDots"></div></div></div>
+    </section>
+    <section class="modal-backdrop" id="successModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden><div class="modal-card"><div class="confetti" aria-hidden="true">✦　✧　✦</div><div class="modal-emoji" id="modalEmoji">🎉</div><div class="modal-tag">إنجاز رائع!</div><h2 id="modalTitle">أحسنت يا بطل!</h2><p class="modal-subtitle" id="modalSubtitle">أتممت المهمة بنجاح.</p><div class="fact-box"><span class="fact-icon">🪐</span><div><b>هل تعلم؟</b><p id="factText"></p></div></div><button class="primary-button modal-next" id="nextButton">المهمة التالية <span>←</span></button><button class="text-button" id="replayButton">إعادة المهمة</button></div></section>
+    <section class="modal-backdrop" id="completeModal" role="dialog" aria-modal="true" aria-labelledby="completeTitle" hidden><div class="modal-card"><div class="modal-emoji">🏆</div><div class="modal-tag">إنجاز أسطوري!</div><h2 id="completeTitle">أنت بطل الفضاء!</h2><p class="modal-subtitle">أكملت كل المهمات وأصبحت رائد فضاء خبيراً!</p><div class="fact-box"><span class="fact-icon">🌟</span><div><b>رحلتك كانت رائعة!</b><p>من الأرض إلى المريخ، اكتشفت أسراراً جديدة وتعلمت كيف يعمل الفضاء.</p></div></div><button class="primary-button modal-next" id="restartButton">العب من جديد <span>↻</span></button><button class="text-button" id="finishHomeButton">العودة للرئيسية</button></div></section>
+  </main>
+  <footer class="site-footer">صُنع بحب للمستكشفين الصغار <span>✦</span> رحلة ممتعة وآمنة</footer>
+</body>
+</html>
