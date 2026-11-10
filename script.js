@@ -119,7 +119,7 @@ sunGroup.add(sunCore);
 const planetData = {
   sun: { name: 'الشمس', subtitle: 'النجم الذي يمنح مجموعتنا الضوء والطاقة', index: '٠١', gravity: '٢٧٤', atmosphere: 'هيدروجين وهيليوم', atmosphereNote: 'بلا سطح صلب', mission: 'مرصد باركر الشمسي', missionNote: 'اقترب من الهالة الشمسية لدراسة الرياح الشمسية.', description: 'الشمس نجم متوسط الحجم يقع في مركز نظامنا الشمسي. جاذبيتها تحفظ الكواكب في مداراتها، والطاقة الناتجة في قلبها تمد الأرض بالضوء والحرارة. ليست كرة نار مشتعلة؛ إنها كرة من البلازما شديدة السخونة.', url: 'https://science.nasa.gov/sun/' },
   earth: { name: 'الأرض', subtitle: 'موطننا الوحيد المعروف للحياة', index: '٠٣', gravity: '٩٫٨', atmosphere: '٧٨٪ نيتروجين · ٢١٪ أكسجين', atmosphereNote: 'محيطات تغطي ٧١٪ من السطح', mission: 'منظومة رصد الأرض التابعة لناسا', missionNote: 'أقمار صناعية تراقب المحيطات والغلاف الجوي والجليد.', description: 'الأرض هي الكوكب الثالث من الشمس، وعلى سطحها ماء سائل وفير وغلاف جوي غني بالأكسجين. يستغرق ضوء الشمس نحو ٨ دقائق ليصل إلينا، وتكمل الأرض دورة حول محورها خلال ٢٣٫٩ ساعة تقريباً.', url: 'https://science.nasa.gov/earth/facts/' },
-  moon: { name: 'القمر', subtitle: 'رفيق الأرض الصخري في الفضاء', index: '٠٠', gravity: '١٫٦٢', atmosphere: 'إكسوسفير رقيق جداً', atmosphereNote: 'ليس له غلاف جوي كثيف', mission: 'أبولو · أرتيمس', missionNote: 'أعادت أبولو رواداً إلى السطح؛ وتواصل أرتيمس استكشاف القمر.', description: 'القمر تابع الأرض الطبيعي، ويبعد عنها في المتوسط نحو ٣٨٤ ألف كيلومتر. لا يحميه هواء كثيف، لذلك بقيت فوهات الاصطدام على سطحه محفوظة لمليارات السنين. تبلغ جاذبيته نحو سدس جاذبية الأرض.', url: 'https://science.nasa.gov/moon/' },
+  moon: { name: 'القمر', subtitle: 'وجهة بعثة Apollo V التعليمية', index: '٠٠', gravity: '١٫٦٢', atmosphere: 'إكسوسفير رقيق جداً', atmosphereNote: 'ليس له غلاف جوي كثيف', mission: 'Apollo 5 · يناير 1968', missionNote: 'اختبار غير مأهول؛ أول رحلة اختبارية للوحدة القمرية.', description: 'القمر تابع الأرض الطبيعي، ويبعد عنها في المتوسط نحو ٣٨٤٬٤٠٠ كيلومتر. جاذبيته نحو ١٫٦٢ م/ث²، ولا يحيط به غلاف جوي كثيف. اختبرت مهمة Apollo 5 غير المأهولة الوحدة القمرية للمرة الأولى. Apollo V هنا اسم فريقكم، واللعبة محاكاة تعليمية وليست إعادة بناء تاريخية دقيقة للمهمة.', url: 'https://www.nasa.gov/the-apollo-program/' },
   mars: { name: 'المريخ', subtitle: 'الكوكب الأحمر وعالم الروبوتات', index: '٠٤', gravity: '٣٫٧١', atmosphere: 'ثاني أكسيد الكربون غالباً', atmosphereNote: 'غلاف رقيق وبارد', mission: 'بيرسيفيرانس · كيوريوسيتي', missionNote: 'مركبتان جوالتان تدرسان صخور المريخ وتاريخه المائي.', description: 'المريخ عالم صخري بارد، ولونه المحمر يأتي من أكاسيد الحديد في تربته. تشير الأدلة إلى أن مياهه السطحية القديمة كانت أكثر وفرة. تستكشف مركبات ناسا سطحه بحثاً عن دلائل على بيئات قديمة صالحة للحياة.', url: 'https://science.nasa.gov/mars/' },
   jupiter: { name: 'المشتري', subtitle: 'عملاق غازي بعواصف هائلة', index: '٠٥', gravity: '٢٣٫١', atmosphere: 'هيدروجين وهيليوم', atmosphereNote: 'لا يملك سطحاً صلباً', mission: 'جونو · يوروبا كليبر', missionNote: 'جونو تدرس المشتري؛ ويوروبا كليبر تبحث في قمره الجليدي.', description: 'المشتري أكبر كواكب النظام الشمسي، ويدور حوله جو من الهيدروجين والهيليوم. البقعة الحمراء العظيمة عاصفة أضخم من الأرض. قاس مسبار جونو مجاله الجاذبي والمغناطيسي وكشف تفاصيل جديدة عن داخل الكوكب.', url: 'https://science.nasa.gov/jupiter/jupiter-facts/' }
 };
@@ -205,7 +205,7 @@ const raycaster = new THREE.Raycaster();
 raycaster.params.Points.threshold = 1;
 const pointer = new THREE.Vector2();
 let pointerStart = null;
-let selected = 'earth';
+let selected = 'moon';
 let paused = false;
 let speed = 1;
 let elapsed = 0;
@@ -281,6 +281,7 @@ function focusOn(key) {
 
 const homeCameraPosition = new THREE.Vector3(-0.5, 14, 28);
 const homeTarget = new THREE.Vector3(2.5, 0, 0);
+focusOn('moon');
 document.querySelectorAll('.body-row').forEach(row => row.addEventListener('click', () => {
   const key = row.dataset.focus;
   setSelection(key, false);
@@ -315,7 +316,7 @@ function launchMission() {
   rocket.group.visible = true;
   $('#launchButton').disabled = true;
   $('#abortButton').hidden = false;
-  $('#missionState').textContent = `المركبة في طريقها إلى ${destinationData[selectedDestination].name}`;
+  $('#missionState').textContent = `Apollo V في طريقها إلى ${destinationData[selectedDestination].name}`;
   $('#flightStatus').textContent = 'انطلقت';
   $('#flightStatus').style.color = '#83e3ee';
   $('#flightTime').textContent = '٠٠:٠٠';
@@ -334,7 +335,7 @@ function finishMission() {
   $('#flightTime').textContent = '٠٠:١٣';
   $('.route-ship').style.right = 'calc(100% - 18px)';
   playTone(790, 0.23);
-  showToast(selectedDestination === 'jupiter' ? 'وصلت المركبة إلى طبقة السحب المحددة. تذكّر: المشتري لا يملك سطحاً صلباً للهبوط.' : `وصلت المركبة إلى ${destinationData[selectedDestination].name} بنجاح.`);
+  showToast(selectedDestination === 'jupiter' ? 'وصلت المركبة إلى طبقة السحب الافتراضية. المشتري لا يملك سطحاً صلباً للهبوط.' : selectedDestination === 'moon' ? 'اكتملت رحلة Apollo V التعليمية. حقيقة: جاذبية القمر ١٫٦٢ م/ث²، واختبرت Apollo 5 الوحدة القمرية دون رواد.' : `وصلت المركبة إلى ${destinationData[selectedDestination].name}. تذكّر أن هذه محاكاة تعليمية مبسّطة.`);
 }
 function abortMission() {
   if (!activeMission) return;
@@ -342,7 +343,7 @@ function abortMission() {
   rocket.group.visible = false;
   $('#launchButton').disabled = false;
   $('#abortButton').hidden = true;
-  $('#missionState').textContent = 'جاهزون للاستكشاف';
+  $('#missionState').textContent = 'مهمة القمر جاهزة';
   $('#flightStatus').textContent = 'أُلغيت';
   $('#flightStatus').style.color = '#ff957e';
   $('#flightTime').textContent = 'جاهز';
@@ -355,7 +356,7 @@ $('#pauseButton').addEventListener('click', () => {
   paused = !paused;
   $('#pauseButton').textContent = paused ? '▶' : 'Ⅱ';
   $('#pauseButton').setAttribute('aria-label', paused ? 'استئناف الحركة' : 'إيقاف الحركة مؤقتاً');
-  $('#missionState').textContent = paused ? 'المحاكاة متوقفة مؤقتاً' : (activeMission ? 'المركبة في طريقها إلى المريخ' : 'جاهزون للاستكشاف');
+  $('#missionState').textContent = paused ? 'المحاكاة متوقفة مؤقتاً' : (activeMission ? `Apollo V في طريقها إلى ${destinationData[selectedDestination].name}` : 'مهمة القمر جاهزة');
 });
 $('#speedRange').addEventListener('input', event => {
   speed = [0, 0.5, 1, 2][Number(event.target.value)];
@@ -475,7 +476,7 @@ const componentLibrary = {
 };
 const categoryLabels = { engines: 'المحركات', tanks: 'الخزانات', boosters: 'المعززات', fins: 'الأجنحة', shields: 'الدروع', capsules: 'الحمولات' };
 const categoryIcons = { engines: '◉', tanks: '▤', boosters: '✦', fins: '⋈', shields: '⬡', capsules: '◇' };
-let selectedDestination = 'mars';
+let selectedDestination = 'moon';
 let currentCategory = 'engines';
 let rocketConfig = { engines: 'methane', tanks: 'cryo', boosters: 'none', fins: 'delta', shields: 'titanium', capsules: 'rover' };
 let testPassed = false;

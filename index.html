@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#050914">
-  <meta name="description" content="محاكي النظام الشمسي — صمّم صاروخك من مكتبة قطع، اختبر الدفع والوقود والدرع، ثم انطلق في مهمة فضائية تعليمية.">
-  <title>مركز قيادة المدار — محاكي النظام الشمسي</title>
+  <meta name="description" content="Apollo V: تجربة ثلاثية الأبعاد لتصميم مركبة فضائية، اختبارها، والانطلاق في مهمة قمرية مستندة إلى بيانات ومصادر NASA.">
+  <title>Apollo V — بعثة القمر</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,30 +16,30 @@
     <div id="scene" class="scene" aria-label="مشهد ثلاثي الأبعاد للنظام الشمسي"></div>
     <div class="vignette" aria-hidden="true"></div>
     <header class="topbar glass">
-      <a class="brand" href="#" aria-label="مركز قيادة المدار"><span class="brand-mark"><i></i><i></i><i></i></span><span><b>مركز قيادة</b><small>المدار · استكشاف الفضاء</small></span></a>
-      <div class="live-status"><span class="pulse"></span><span>المحاكاة مباشرة</span><span class="status-divider"></span><span id="missionState">جاهزون للاستكشاف</span></div>
+      <a class="brand" href="#" aria-label="Apollo V — بعثة القمر"><span class="brand-mark"><i></i><i></i><i></i></span><span><b>APOLLO V</b><small>فريق استكشاف القمر</small></span></a>
+      <div class="live-status"><span class="pulse"></span><span>محاكاة ثلاثية الأبعاد</span><span class="status-divider"></span><span id="missionState">مهمة القمر جاهزة</span></div>
       <button id="soundToggle" class="top-icon" title="تشغيل أو إيقاف الصوت" aria-label="تشغيل الصوت">♫</button>
     </header>
     <aside class="mission-panel glass" aria-label="لوحة التحكم بالمهمة">
-      <div class="panel-head"><div><div class="eyebrow"><span class="eyebrow-dot"></span> غرفة العمليات</div><h1>مركز <em>المهمة</em></h1></div><span class="panel-symbol">⌘</span></div>
-      <div class="mission-card"><div class="mission-card-top"><span class="mission-icon">✦</span><span class="mission-code">المهمة ٠١ · هندسة وإطلاق</span></div><h2 id="activeTitle">صمّم مركبتك واختبرها</h2><p id="activeSummary">اختر الوجهة، ركّب الصاروخ من مكتبة القطع، ثم اختبر الدفع والوقود والدرع قبل الإطلاق.</p><div class="mission-meta"><span><i class="meta-dot cyan"></i> مختبر هندسي</span><span><i class="meta-dot orange"></i> محاكاة تعليمية</span></div></div>
-      <div class="section-label"><span>معالم الرحلة</span><span class="section-count">٠٤</span></div>
+      <div class="panel-head"><div><div class="eyebrow"><span class="eyebrow-dot"></span> بعثة Apollo V · غرفة العمليات</div><h1>العودة إلى <em>القمر</em></h1></div><span class="panel-symbol">⌘</span></div>
+      <div class="mission-card"><div class="mission-card-top"><span class="mission-icon">✦</span><span class="mission-code">تحدّي استكشاف · هندسة + علم</span></div><h2 id="activeTitle">صمّم مركبةً للرحلة القمرية</h2><p id="activeSummary">اختر تجهيزاتك، اختبر الدفع والوقود والحماية، ثم أطلق مركبتك في رحلة ثلاثية الأبعاد إلى القمر.</p><div class="mission-meta"><span><i class="meta-dot cyan"></i> قراراتك تغيّر النتيجة</span><span><i class="meta-dot orange"></i> حقائق من NASA</span></div></div>
+      <div class="section-label"><span>استكشف الأجرام</span><span class="section-count">٠٤</span></div>
       <div class="body-list">
-        <button class="body-row selected" data-focus="earth"><span class="body-orb earth-orb"></span><span class="body-name"><b>الأرض</b><small>كوكبنا الأزرق</small></span><span class="body-distance">١ وحدة فلكية</span><span class="row-arrow">↙</span></button>
-        <button class="body-row" data-focus="moon"><span class="body-orb moon-orb"></span><span class="body-name"><b>القمر</b><small>تابع الأرض</small></span><span class="body-distance">٣٨٤ ألف كم</span><span class="row-arrow">↙</span></button>
+        <button class="body-row" data-focus="earth"><span class="body-orb earth-orb"></span><span class="body-name"><b>الأرض</b><small>كوكبنا الأزرق</small></span><span class="body-distance">١ وحدة فلكية</span><span class="row-arrow">↙</span></button>
+        <button class="body-row selected" data-focus="moon"><span class="body-orb moon-orb"></span><span class="body-name"><b>القمر</b><small>تابع الأرض</small></span><span class="body-distance">٣٨٤٬٤٠٠ كم</span><span class="row-arrow">↙</span></button>
         <button class="body-row" data-focus="mars"><span class="body-orb mars-orb"></span><span class="body-name"><b>المريخ</b><small>الكوكب الأحمر</small></span><span class="body-distance">١٫٥٢ وحدة فلكية</span><span class="row-arrow">↙</span></button>
         <button class="body-row" data-focus="jupiter"><span class="body-orb jupiter-orb"></span><span class="body-name"><b>المشتري</b><small>عملاق الغاز</small></span><span class="body-distance">٥٫٢ وحدة فلكية</span><span class="row-arrow">↙</span></button>
       </div>
-      <div class="flight-card"><div class="flight-heading"><div><span class="flight-kicker">مسار الإطلاق</span><b>الأرض <span class="route-arrow">←</span> <span id="routeTarget">المريخ</span></b></div><span class="rocket-glyph">↗</span></div><div class="route-track"><span class="route-point start"></span><span class="route-line"></span><span class="route-point end"></span><span class="route-ship">◆</span></div><div class="flight-stats"><span>المدة <b id="flightTime">جاهز</b></span><span>الحالة <b class="ready-text" id="flightStatus">بانتظار التصميم</b></span></div><button id="launchButton" class="launch-button"><span>افتح ورشة الصاروخ</span><span class="launch-arrow">←</span></button><button id="abortButton" class="abort-button" hidden>إلغاء المهمة</button></div>
-      <div class="panel-bottom"><span class="connection"><i></i> اتصال آمن</span><span>الإصدار ١.٠</span></div>
+      <div class="flight-card"><div class="flight-heading"><div><span class="flight-kicker">مسار المهمة</span><b>الأرض <span class="route-arrow">←</span> <span id="routeTarget">القمر</span></b></div><span class="rocket-glyph">↗</span></div><div class="route-track"><span class="route-point start"></span><span class="route-line"></span><span class="route-point end"></span><span class="route-ship">◆</span></div><div class="flight-stats"><span>المدة <b id="flightTime">جاهز</b></span><span>الحالة <b class="ready-text" id="flightStatus">بانتظار التصميم</b></span></div><button id="launchButton" class="launch-button"><span>ابدأ مهمة القمر</span><span class="launch-arrow">←</span></button><button id="abortButton" class="abort-button" hidden>إلغاء المهمة</button></div>
+      <div class="panel-bottom"><span class="connection"><i></i> بيانات موثقة</span><span>فريق Apollo V</span></div>
     </aside>
-    <div class="scene-title"><span class="scene-label"><i></i> محاكاة ثلاثية الأبعاد</span><h2 id="sceneTitle">النظام الشمسي</h2><p id="sceneHint">اسحب لتدوير المشهد · مرّر للتقريب</p></div>
+    <div class="scene-title"><span class="scene-label"><i></i> مهمة قمرية ثلاثية الأبعاد</span><h2 id="sceneTitle">الأرض والقمر</h2><p id="sceneHint">استكشف المشهد، ثم صمّم مركبة المهمة</p></div>
     <div class="camera-hint glass"><span class="drag-icon">✥</span><span>اسحب للدوران<br><small>مرّر للتقريب · زر يمين للتحريك</small></span></div>
     <div class="bottom-bar"><div class="scale-note"><span>المسافات والأحجام مصغّرة للمحاكاة</span><span class="scale-rule"><i></i><i></i></span></div><div class="sim-controls glass"><button id="zoomOut" class="control-button" aria-label="إبعاد الكاميرا">−</button><button id="homeView" class="control-button home-control" aria-label="إعادة عرض النظام الشمسي">⌂</button><button id="zoomIn" class="control-button" aria-label="تقريب الكاميرا">+</button><span class="control-divider"></span><button id="pauseButton" class="control-button pause-control" aria-label="إيقاف الحركة مؤقتاً">Ⅱ</button><div class="speed-control"><label for="speedRange">السرعة</label><input id="speedRange" type="range" min="0" max="3" value="1" step="1"><span id="speedValue">١×</span></div></div><div class="legend"><span><i class="legend-sun"></i> الشمس</span><span><i class="legend-planet"></i> كواكب</span><span><i class="legend-orbit"></i> مدارات</span></div></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <section class="workshop-backdrop" id="workshop" role="dialog" aria-modal="true" aria-labelledby="workshopTitle" hidden>
       <div class="workshop-window">
-        <header class="workshop-header"><div class="workshop-brand"><span class="workshop-badge">⚙</span><div><span class="workshop-kicker">مختبر بناء المركبات · اختبار قبل الإطلاق</span><h2 id="workshopTitle">ورشة <em>الصاروخ</em></h2></div></div><div class="workshop-header-note"><span class="header-live"></span> كل تعديل يغيّر نتيجة الاختبار</div><button class="modal-close" id="closeWorkshop" aria-label="إغلاق الورشة">×</button></header>
+        <header class="workshop-header"><div class="workshop-brand"><span class="workshop-badge">⚙</span><div><span class="workshop-kicker">Apollo V · مختبر المهمة القمرية</span><h2 id="workshopTitle">صمّم <em>مركبتك</em></h2></div></div><div class="workshop-header-note"><span class="header-live"></span> اختياراتك تغيّر نتيجة الفحص</div><button class="modal-close" id="closeWorkshop" aria-label="إغلاق الورشة">×</button></header>
         <div class="workshop-layout">
           <section class="build-area">
             <div class="target-picker"><div class="picker-label"><span>١</span><div><b>اختر وجهتك</b><small>الجاذبية والجو يختلفان من عالم لآخر</small></div></div><div class="target-options" id="targetOptions"></div></div>
@@ -63,7 +63,7 @@
       </div>
     </section>
     <section class="info-backdrop" id="planetModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
-      <article class="info-card"><button class="modal-close" id="closeModal" aria-label="إغلاق">×</button><div class="modal-hero"><div id="modalPlanet" class="modal-planet earth-orb"></div><div><span class="modal-kicker" id="modalKicker">ملف كوكبي · ٠٣</span><h2 id="modalTitle">الأرض</h2><p id="modalSubtitle">موطننا الوحيد المعروف للحياة</p></div><span class="modal-index" id="modalIndex">٠٣</span></div><p class="modal-description" id="modalDescription"></p><div class="fact-grid"><div class="fact-stat"><span>الجاذبية</span><b id="gravityValue"></b><small>متر/ثانية²</small></div><div class="fact-stat"><span>الغلاف الجوي</span><b id="atmosphereValue"></b><small id="atmosphereNote"></small></div><div class="fact-stat wide"><span>مهمة ناسا مرتبطة</span><b id="missionValue"></b><small id="missionNote"></small></div></div><div class="modal-source"><span>اقرأ المزيد من ناسا</span><a id="nasaLink" href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener noreferrer">المصدر العلمي ↗</a></div></article>
+      <article class="info-card"><button class="modal-close" id="closeModal" aria-label="إغلاق">×</button><div class="modal-hero"><div id="modalPlanet" class="modal-planet earth-orb"></div><div><span class="modal-kicker" id="modalKicker">ملف كوكبي · ٠٣</span><h2 id="modalTitle">الأرض</h2><p id="modalSubtitle">موطننا الوحيد المعروف للحياة</p></div><span class="modal-index" id="modalIndex">٠٣</span></div><p class="modal-description" id="modalDescription"></p><div class="fact-grid"><div class="fact-stat"><span>الجاذبية</span><b id="gravityValue"></b><small>متر/ثانية²</small></div><div class="fact-stat"><span>الغلاف الجوي</span><b id="atmosphereValue"></b><small id="atmosphereNote"></small></div><div class="fact-stat wide"><span>مهمة ناسا مرتبطة</span><b id="missionValue"></b><small id="missionNote"></small></div></div><div class="modal-source"><span>حقائق ومهمات موثقة</span><a id="nasaLink" href="https://science.nasa.gov/solar-system/" target="_blank" rel="noopener noreferrer">افتح مصدر NASA ↗</a></div></article>
     </section>
     <div class="texture-credit">خرائط الكواكب: <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noopener noreferrer">Solar System Scope</a> · CC BY 4.0</div>
   </main>
