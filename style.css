@@ -20,3 +20,66 @@
 .brand-mark i{border-color:#8de6ed}
 .brand-mark i:nth-child(3){background:#ffbd78;box-shadow:0 0 12px #ffbd78}
 .mission-card{background:linear-gradient(138deg,#172843,#101827)}
+
+
+/* Playable lunar-descent HUD */
+.landing-hud[hidden],.landing-end[hidden]{display:none}
+.landing-hud{position:absolute;z-index:5;left:24px;bottom:92px;width:min(360px,calc(100vw - 390px));padding:14px 15px;border-radius:18px;background:rgba(7,14,25,.9);display:grid;gap:10px;color:#f1f6ff}
+.landing-head{display:flex;align-items:center;justify-content:space-between}
+.landing-kicker{font-size:8px;letter-spacing:.1em;color:#86dfe7}
+.landing-head h2{font-size:18px;margin:1px 0 0;font-weight:600}
+.landing-head button{width:28px;height:28px;border:1px solid #ffffff20;border-radius:8px;color:#d4dfed;background:#ffffff08;font-size:19px;cursor:pointer}
+.landing-readouts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.landing-readouts>div{padding:8px;border:1px solid #ffffff13;border-radius:10px;background:#ffffff06;display:grid;gap:2px}
+.landing-readouts small{font-size:8px;color:#93a2b5}
+.landing-readouts b{font-size:18px;line-height:1.1;font-variant-numeric:tabular-nums;direction:ltr;text-align:right;color:#eef6ff}
+.landing-readouts b i{font-style:normal;font-size:8px;color:#94a3b5;margin-left:4px}
+.landing-fuel{height:4px;background:#ffffff17;border-radius:8px;overflow:hidden}
+.landing-fuel i{display:block;height:100%;width:36%;border-radius:inherit;background:linear-gradient(90deg,#70e5b3,#ffcc76);transition:width .15s,background .15s}
+.landing-target{display:grid;gap:3px}
+.landing-target>span{font-size:9px;color:#e6edf5}
+.landing-target>small{font-size:7px;color:#8292a7}
+.target-track{height:16px;position:relative;display:grid;place-items:center}
+.target-track:before{content:'';position:absolute;left:3px;right:3px;height:3px;border-radius:6px;background:linear-gradient(90deg,#ff897b,#64758d 40%,#70e5b3 47%,#70e5b3 53%,#64758d 60%,#ff897b)}
+.target-track>i{position:absolute;left:calc(50% - 10px);width:20px;height:12px;border:1px solid #77e2b3;border-radius:5px;box-shadow:0 0 10px #71e2ae66}
+.target-track>b{position:absolute;left:50%;width:9px;height:9px;transform:translateX(-50%);border:2px solid #fff;border-radius:50%;background:#ffb36f;box-shadow:0 0 9px #ffb36f;transition:left .12s}
+.landing-controls{display:grid;grid-template-columns:54px 1fr 54px;gap:7px}
+.landing-controls button{min-height:43px;border:1px solid #ffffff18;border-radius:11px;cursor:pointer;touch-action:none;user-select:none;color:#f4f8fd}
+.steer-control{display:grid;place-items:center;background:#ffffff09;font-size:16px}
+.steer-control small{font-size:7px;color:#9aabc0}
+.steer-control:active,.steer-control.pressed{background:#83e3ee27;border-color:#83e3ee70}
+.thrust-control{display:grid;place-content:center;gap:3px;background:linear-gradient(105deg,#aa652f,#e7a75d);border-color:#ffc27970!important;color:#160f09!important;font-size:10px;font-weight:700;box-shadow:0 4px 16px #dc94543b}
+.thrust-control small{font-size:7px;font-weight:500;color:#331c0c}
+.thrust-control kbd{font:inherit;font-size:7px;padding:1px 4px;border-radius:3px;background:#2b190b26}
+.thrust-control:active,.thrust-control.pressed{filter:brightness(1.25);transform:translateY(1px)}
+.landing-tip{margin:0;color:#99a9bb;font-size:8px;line-height:1.6}
+.landing-end{padding:11px;border:1px solid #78e1b65e;border-radius:12px;background:#70e2ac10}
+.landing-end.fail{border-color:#ff90755e;background:#ff907510}
+.landing-end strong{font-size:12px;color:#9ceac4}
+.landing-end.fail strong{color:#ffb19c}
+.landing-end p{font-size:8px;line-height:1.65;color:#a5b2c3;margin:4px 0 8px}
+.landing-end button{width:100%;min-height:32px;border:0;border-radius:8px;background:#8ce4bd;color:#092018;font-size:9px;font-weight:700;cursor:pointer}
+@media(max-width:700px){.landing-hud{left:10px;right:10px;bottom:calc(43svh + 16px);width:auto;padding:9px 11px;gap:7px;border-radius:14px}.landing-head h2{font-size:14px}.landing-kicker{font-size:7px}.landing-head button{width:25px;height:25px}.landing-readouts{gap:4px}.landing-readouts>div{padding:5px 6px}.landing-readouts small{font-size:7px}.landing-readouts b{font-size:14px}.landing-readouts b i{font-size:7px}.landing-controls{grid-template-columns:46px 1fr 46px;gap:5px}.landing-controls button{min-height:36px}.landing-tip{font-size:7px}.landing-end{padding:8px}.landing-end strong{font-size:10px}.landing-end p{font-size:7px;margin:3px 0 6px}}
+@media(max-width:390px){.landing-hud{bottom:calc(46svh + 10px)}}
+
+.landing-science{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border:1px solid #81dfeb24;border-radius:8px;background:#81dfeb08;color:#93a7b9;font-size:7px}.landing-science strong{font-size:8px;color:#90e5ea;direction:ltr}
+
+.quick-play{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;width:100%;height:35px;margin-top:11px;padding:0 12px;border:0;border-radius:9px;background:linear-gradient(105deg,#8de5eb,#a4efcf);color:#08161b;font-size:10px;font-weight:700;cursor:pointer;box-shadow:0 5px 16px #77dfe52b;transition:transform .18s,filter .18s}.quick-play:hover{filter:brightness(1.08);transform:translateY(-1px)}.quick-play span{font-size:16px}
+@media(max-width:700px){.quick-play{height:31px;margin-top:8px;padding:0 10px;font-size:9px}.mission-card p{max-width:260px}}
+
+
+/* Bilingual mission UI and LUMA-1 rescue objective */
+.language-toggle{width:auto;min-width:42px;padding:0 8px;font-size:10px;font-weight:700;letter-spacing:.03em}
+.landing-objective{margin:-3px 0 0;color:#a9b9cc;font-size:8px;line-height:1.65;padding:7px 9px;border-left:2px solid #ffbd72;background:linear-gradient(90deg,#ffbd7210,transparent);border-radius:0 7px 7px 0}
+body.english{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;direction:ltr}
+body.english .topbar,body.english .mission-panel,body.english .landing-hud,body.english .workshop-window,body.english .info-card{direction:ltr;text-align:left}
+body.english .body-row,body.english .target-choice,body.english .part-card{text-align:left}
+body.english .body-distance{margin-left:auto;margin-right:0}
+body.english .mission-meta,body.english .landing-controls,body.english .flight-stats,body.english .landing-science{direction:ltr}
+body.english .workshop-header-note{margin-left:auto;margin-right:0}
+body.english .engineering-area{border-right:0;border-left:1px solid #ffffff12}
+body.english .modal-close{left:auto;right:16px}
+body.english .modal-index{margin-right:0;margin-left:auto}
+body.english .texture-credit{right:27px;left:auto}
+body.english .landing-objective{border-left:2px solid #ffbd72;border-radius:7px 0 0 7px}
+@media(max-width:700px){.language-toggle{min-width:38px;padding:0 6px;font-size:9px}.landing-objective{font-size:7px;padding:5px 7px}}

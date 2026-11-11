@@ -33,6 +33,8 @@ scene.add(ambient);
 const sunLight = new THREE.PointLight(0xffd6a0, 330, 0, 1.3);
 sunLight.position.set(0, 0, 0);
 scene.add(sunLight);
+const landingFillLight = new THREE.PointLight(0xc6dcff, 0, 4, 2);
+scene.add(landingFillLight);
 
 const textureLoader = new THREE.TextureLoader();
 const textureUrls = {
@@ -201,6 +203,88 @@ function createRocket() {
 }
 const rocket = createRocket();
 
+function createLandingCraft() {
+  const group = new THREE.Group();
+  const foil = new THREE.MeshStandardMaterial({ color: 0xe8bf77, metalness: 0.58, roughness: 0.32 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.17, 0.2, 6), foil);
+  body.position.y = 0.045;
+  group.add(body);
+  const cabin = new THREE.Mesh(new THREE.OctahedronGeometry(0.13, 0), new THREE.MeshStandardMaterial({ color: 0xf1e5c4, metalness: 0.28, roughness: 0.26 }));
+  cabin.position.y = 0.19;
+  group.add(cabin);
+  const dark = new THREE.MeshStandardMaterial({ color: 0x405065, metalness: 0.68, roughness: 0.36 });
+  const legGeo = new THREE.CylinderGeometry(0.012, 0.018, 0.24, 5);
+  const footGeo = new THREE.BoxGeometry(0.085, 0.018, 0.065);
+  for (let i = 0; i < 4; i += 1) {
+    const angle = i * Math.PI / 2 + Math.PI / 4;
+    const x = Math.cos(angle) * 0.13;
+    const z = Math.sin(angle) * 0.13;
+    const leg = new THREE.Mesh(legGeo, dark);
+    leg.position.set(x, -0.105, z);
+    leg.rotation.z = Math.cos(angle) * -0.38;
+    leg.rotation.x = Math.sin(angle) * 0.38;
+    group.add(leg);
+    const foot = new THREE.Mesh(footGeo, foil);
+    foot.position.set(x * 1.68, -0.22, z * 1.68);
+    group.add(foot);
+  }
+  const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, 0.08, 8), dark);
+  nozzle.position.y = -0.12;
+  group.add(nozzle);
+  const flame = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.18, 8), new THREE.MeshBasicMaterial({ color: 0xffa14f, transparent: true, opacity: 0.9 }));
+  flame.position.y = -0.245;
+  flame.rotation.z = Math.PI;
+  flame.visible = false;
+  group.add(flame);
+  const marker = new THREE.Mesh(new THREE.TorusGeometry(0.34, 0.035, 8, 28), new THREE.MeshBasicMaterial({ color: 0x23d9ff, transparent: true, opacity: 1, depthTest: false, depthWrite: false, toneMapped: false }));
+  marker.rotation.x = Math.PI / 2;
+  marker.position.y = 0.45;
+  marker.renderOrder = 20;
+  group.add(marker);
+  group.scale.setScalar(0.23);
+  group.visible = false;
+  scene.add(group);
+  group.userData.flame = flame;
+  group.userData.marker = marker;
+  return group;
+}
+const landingCraft = createLandingCraft();
+
+function createRescueBeacon() {
+  const group = new THREE.Group();
+  const frame = new THREE.MeshStandardMaterial({ color: 0x8da5b9, metalness: 0.72, roughness: 0.3 });
+  const panel = new THREE.MeshStandardMaterial({ color: 0x183d62, metalness: 0.42, roughness: 0.33, emissive: 0x082344, emissiveIntensity: 0.7 });
+  const signal = new THREE.MeshStandardMaterial({ color: 0xffbd72, emissive: 0xff8a3d, emissiveIntensity: 1.5, metalness: 0.15, roughness: 0.2 });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.06, 0.025, 8), frame);
+  base.position.y = 0.014;
+  group.add(base);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.01, 0.13, 6), frame);
+  mast.position.y = 0.085;
+  group.add(mast);
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.025, 10, 8), signal);
+  lamp.position.y = 0.16;
+  group.add(lamp);
+  for (const side of [-1, 1]) {
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.008, 0.045), panel);
+    wing.position.set(side * 0.07, 0.065, 0);
+    group.add(wing);
+    const strut = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.07, 5), frame);
+    strut.position.set(side * 0.035, 0.055, 0);
+    group.add(strut);
+  }
+  const ringMaterial = new THREE.MeshBasicMaterial({ color: 0xffbd72, transparent: true, opacity: 0.92, depthTest: false, depthWrite: false, toneMapped: false });
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.006, 7, 36), ringMaterial);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.006;
+  ring.renderOrder = 19;
+  group.add(ring);
+  group.scale.setScalar(0.62);
+  group.visible = false;
+  scene.add(group);
+  return { group, signal, ringMaterial };
+}
+const rescueBeacon = createRescueBeacon();
+
 const raycaster = new THREE.Raycaster();
 raycaster.params.Points.threshold = 1;
 const pointer = new THREE.Vector2();
@@ -210,12 +294,161 @@ let paused = false;
 let speed = 1;
 let elapsed = 0;
 let activeMission = null;
+let landingMission = null;
+const landingInput = { thrust: false, steer: 0 };
 let toastTimer;
 let soundEnabled = true;
 let audioContext;
 const clock = new THREE.Clock();
 
-function formatArabic(number) { return String(number).replace(/[0-9]/g, digit => '٠١٢٣٤٥٦٧٨٩'[digit]); }
+let currentLanguage = (() => { try { return localStorage.getItem('apollo-v-language') || 'ar'; } catch { return 'ar'; } })();
+const L = (ar, en) => currentLanguage === 'en' ? en : ar;
+function formatArabic(number) { const value = String(number); return currentLanguage === 'en' ? value : value.replace(/[0-9]/g, digit => '٠١٢٣٤٥٦٧٨٩'[digit]); }
+function setDirectText(selector, value) {
+  const element = $(selector);
+  if (!element) return;
+  const nodes = [...element.childNodes].filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+  if (!nodes.length) { element.textContent = value; return; }
+  nodes.forEach((node, index) => { node.textContent = index === 0 ? value : ''; });
+}
+const staticTranslations = [
+  ['.brand small', 'فريق استكشاف القمر', 'Lunar exploration team'],
+  ['#simulationLabel', 'مهمة إنقاذ ثلاثية الأبعاد', '3D rescue mission'],
+  ['.panel-head .eyebrow', 'بعثة Apollo V · غرفة العمليات', 'Apollo V · Mission control'],
+  ['.mission-code', 'عملية ٠١ · إنقاذ الإشارة', 'OP 01 · SIGNAL RESCUE'],
+  ['#activeTitle', 'أعِد إشارة LUMA-1', 'Bring LUMA-1 back online'],
+  ['#activeSummary', 'انقطعت منارة الإنقاذ على الوجه البعيد. اهبط قربها لتعيد بث الإشارة.', 'LUMA-1 has gone dark on the far side. Land in the marked zone to restore its signal.'],
+  ['.mission-meta span:first-child', 'تحكّم مباشر', 'PILOT CONTROL'],
+  ['.mission-meta span:last-child', 'جاذبية NASA', 'NASA GRAVITY'],
+  ['#quickPlay', 'ابدأ الإنقاذ', 'START RESCUE'],
+  ['.section-label span:first-child', 'استكشف الأجرام', 'EXPLORE WORLDS'],
+  ['.body-row[data-focus="earth"] .body-name b', 'الأرض', 'Earth'],
+  ['.body-row[data-focus="earth"] .body-name small', 'كوكبنا الأزرق', 'Our blue home'],
+  ['.body-row[data-focus="earth"] .body-distance', '١ وحدة فلكية', '1 AU'],
+  ['.body-row[data-focus="moon"] .body-name b', 'القمر', 'Moon'],
+  ['.body-row[data-focus="moon"] .body-name small', 'تابع الأرض', 'Earth’s satellite'],
+  ['.body-row[data-focus="moon"] .body-distance', '٣٨٤٬٤٠٠ كم', '384,400 km'],
+  ['.body-row[data-focus="mars"] .body-name b', 'المريخ', 'Mars'],
+  ['.body-row[data-focus="mars"] .body-name small', 'الكوكب الأحمر', 'The red planet'],
+  ['.body-row[data-focus="mars"] .body-distance', '١٫٥٢ وحدة فلكية', '1.52 AU'],
+  ['.body-row[data-focus="jupiter"] .body-name b', 'المشتري', 'Jupiter'],
+  ['.body-row[data-focus="jupiter"] .body-name small', 'عملاق الغاز', 'Gas giant'],
+  ['.body-row[data-focus="jupiter"] .body-distance', '٥٫٢ وحدة فلكية', '5.2 AU'],
+  ['.flight-kicker', 'مسار الإنقاذ', 'RESCUE TRAJECTORY'],
+  ['.flight-heading > div > b', 'الأرض ', 'Earth '],
+  ['#routeTarget', 'القمر', 'Moon'],
+  ['.flight-stats > span:first-child', 'المدة ', 'TIME '],
+  ['.flight-stats > span:last-child', 'الحالة ', 'STATUS '],
+  ['#launchButton span:first-child', 'مختبر المركبة', 'VEHICLE LAB'],
+  ['#abortButton', 'إنهاء المهمة', 'ABORT MISSION'],
+  ['.connection', 'بيانات موثقة', 'NASA DATA'],
+  ['.panel-bottom > span:last-child', 'فريق Apollo V', 'Apollo V team'],
+  ['.scene-label', 'عملية إنقاذ LUMA-1', 'LUMA-1 SIGNAL RESCUE'],
+  ['#sceneTitle', 'أعِد بث الإشارة', 'Restore the signal'],
+  ['#sceneHint', 'هبوط ناعم · وقود محدود · نافذة إنقاذ واحدة', 'Soft landing · limited fuel · one rescue window'],
+  ['.camera-hint > span:nth-child(2)', 'اسحب للدوران', 'Drag to orbit'],
+  ['.camera-hint small', 'مرّر للتقريب · زر يمين للتحريك', 'Scroll to zoom · right-drag to pan'],
+  ['.scale-note > span:first-child', 'المسافات والأحجام مصغّرة للمحاكاة', 'Distances and sizes are scaled for play'],
+  ['.legend span:nth-child(1)', 'الشمس', 'SUN'],
+  ['.legend span:nth-child(2)', 'كواكب', 'PLANETS'],
+  ['.legend span:nth-child(3)', 'مدارات', 'ORBITS'],
+  ['.section-count', '٠٤', '04'],
+  ['.speed-control label', 'السرعة', 'SIM SPEED'],
+  ['.texture-credit', 'خرائط الكواكب: ', 'Planet textures: '],
+  ['.landing-kicker', 'إشارة إنقاذ · LUMA-1', 'RESCUE SIGNAL · LUMA-1'],
+  ['.landing-head h2', 'الهبوط قرب المنارة', 'Land by the beacon'],
+  ['#landingObjective', 'وجّه المركبة إلى منطقة الإشارة وخفّض سرعتك قبل ملامسة السطح.', 'Steer into the signal zone and slow down before touching the lunar surface.'],
+  ['.landing-readouts > div:nth-child(1) small', 'ارتفاع', 'ALTITUDE'],
+  ['.landing-readouts > div:nth-child(1) b i', 'م', 'm'],
+  ['.landing-readouts > div:nth-child(2) small', 'سرعة الهبوط', 'DESCENT SPEED'],
+  ['.landing-readouts > div:nth-child(2) b i', 'م/ث', 'm/s'],
+  ['.landing-readouts > div:nth-child(3) small', 'وقود المناورة', 'FUEL'],
+  ['.landing-readouts > div:nth-child(3) b i', '٪', '%'],
+  ['.landing-science > span', 'جاذبية القمر', 'MOON GRAVITY'],
+  ['.landing-science strong', '١٫٦٢ م/ث² · NASA', '1.62 m/s² · NASA'],
+  ['.landing-target > span', 'منطقة الإشارة', 'SIGNAL ZONE'],
+  ['.landing-target > small', 'أدخِل المؤشر في الحلقة الذهبية', 'Guide the marker into the gold ring'],
+  ['.steer-control[data-land-steer="-1"] small', 'يسار', 'LEFT'],
+  ['#landThrust', 'اضغط للدفع', 'THRUST'],
+  ['#landThrust small', 'أو استمر بالضغط', ' or hold'],
+  ['.steer-control[data-land-steer="1"] small', 'يمين', 'RIGHT'],
+  ['#landingTip', 'نبضات قصيرة للدفع. خفّض سرعة الهبوط، ولا تهدر الوقود.', 'Use short thrust bursts. Slow your descent and conserve fuel.'],
+  ['#landingResult', 'تم استعادة الإشارة!', 'SIGNAL RESTORED!'],
+  ['#landingResultText', 'تمت إعادة بث LUMA-1. نجاح الإنقاذ يعتمد على هبوطك الناعم.', 'LUMA-1 is back online. A gentle landing completed the rescue.'],
+  ['#landingRetry', 'أعد المحاولة', 'TRY AGAIN'],
+  ['#workshop .workshop-kicker', 'Apollo V · مختبر المهمة القمرية', 'Apollo V · Lunar vehicle lab'],
+  ['#workshopTitle', 'صمّم ', 'Design your '],
+  ['#workshopTitle em', 'مركبتك', 'lander'],
+  ['#workshop .workshop-header-note', 'اختياراتك تغيّر نتيجة الفحص', 'Your choices change the test results'],
+  ['#workshop .picker-label b', 'اختر وجهتك', 'Choose destination'],
+  ['#workshop .picker-label small', 'الجاذبية والجو يختلفان من عالم لآخر', 'Gravity and atmospheres vary by world'],
+  ['#workshop .preview-top span:first-child', 'معاينة ثلاثية الأبعاد', '3D vehicle preview'],
+  ['#workshop .preview-spin', 'اسحب لتدوير النموذج', 'Drag to rotate'],
+  ['.summary-label', 'تكوينك الحالي', 'CURRENT BUILD'],
+  ['#workshop .catalog-heading b', 'مكتبة القطع', 'PARTS LIBRARY'],
+  ['#workshop .catalog-heading small', 'اختر قطعة لكل جزء من المركبة', 'Choose a part for each subsystem'],
+  ['#workshop .engineering-heading .eyebrow', 'لوحة المهندس', 'ENGINEER CONSOLE'],
+  ['#workshop .engineering-heading h3', 'اختبار التحمل', 'Stress test'],
+  ['#workshop .tuning-heading b', 'ضبط المركبة', 'VEHICLE TUNING'],
+  ['#workshop .tuning-heading span', 'إعدادات قابلة للتعديل', 'Adjustable settings'],
+  ['#testButton', 'اختبار الصاروخ', 'TEST VEHICLE'],
+  ['#launchConfirmed', 'المركبة جاهزة — أطلق المهمة', 'Vehicle ready — launch mission'],
+  ['.engineering-disclaimer', 'نتائج تعليمية تقريبية وليست بديلاً عن تحليل هندسي حقيقي.', 'Educational estimates only; not a substitute for engineering analysis.'],
+  ['.modal-source > span', 'حقائق ومهمات موثقة', 'Verified mission facts'],
+  ['#nasaLink', 'افتح مصدر NASA ↗', 'OPEN NASA SOURCE ↗']
+];
+function applyLanguage() {
+  const en = currentLanguage === 'en';
+  document.documentElement.lang = currentLanguage;
+  document.documentElement.dir = currentLanguage === 'en' ? 'ltr' : 'rtl';
+  document.body.classList.toggle('english', en);
+  for (const [selector, ar, english] of staticTranslations) setDirectText(selector, en ? english : ar);
+  setDirectText('.panel-head h1', en ? 'Return to ' : 'عودة إلى ');
+  $('.panel-head h1 em').textContent = en ? 'the Moon' : 'القمر';
+  $('#languageToggle').textContent = en ? 'عربي' : 'EN';
+  $('#languageToggle').setAttribute('aria-label', en ? 'التبديل إلى العربية' : 'Switch to English');
+  $('#languageToggle').title = en ? 'العربية' : 'English';
+  $('#soundToggle').title = en ? 'Toggle sound' : 'تشغيل أو إيقاف الصوت';
+  $('#soundToggle').setAttribute('aria-label', soundEnabled ? L('إيقاف الصوت', 'Mute sound') : L('تشغيل الصوت', 'Enable sound'));
+  $('#zoomOut').setAttribute('aria-label', L('إبعاد الكاميرا', 'Zoom out'));
+  $('#zoomIn').setAttribute('aria-label', L('تقريب الكاميرا', 'Zoom in'));
+  $('#landingExit').setAttribute('aria-label', L('إنهاء المحاولة', 'End attempt'));
+  $('#speedValue').textContent = `${formatArabic(speed)}×`;
+  const s = $('#missionState');
+  if (landingMission && !landingMission.outcome) s.textContent = L('الهبوط جارٍ · أعد إشارة LUMA-1', 'DESCENT IN PROGRESS · RESTORE LUMA-1');
+  else if (landingMission?.outcome === 'landed') s.textContent = L('اكتمل الإنقاذ · الإشارة عادت', 'RESCUE COMPLETE · SIGNAL RESTORED');
+  else if (landingMission?.outcome === 'crashed') s.textContent = L('فُقدت الإشارة · حاول مجددًا', 'SIGNAL LOST · TRY AGAIN');
+  else s.textContent = L('منارة LUMA-1 تنتظر الإنقاذ', 'LUMA-1 beacon awaiting rescue');
+  const f = $('#flightStatus');
+  if (landingMission?.outcome === 'landed') f.textContent = L('أُعيد بث الإشارة', 'SIGNAL RESTORED');
+  else if (landingMission?.outcome === 'crashed') f.textContent = L('فشلت المحاولة', 'ATTEMPT FAILED');
+  else if (landingMission) f.textContent = L('الهبوط النهائي', 'FINAL DESCENT');
+  else f.textContent = L('بانتظار الإنقاذ', 'AWAITING RESCUE');
+  if (activeMission) $('#abortButton').textContent = L('إلغاء الرحلة', 'ABORT FLIGHT');
+  else if (landingMission && !landingMission.outcome) $('#abortButton').textContent = L('إنهاء المحاولة', 'ABORT ATTEMPT');
+  if (!activeMission && !landingMission && ['جاهز', 'READY'].includes($('#flightTime').textContent)) $('#flightTime').textContent = L('جاهز', 'READY');
+  if (landingMission?.outcome === 'landed') {
+    const score = formatArabic(landingMission.score || 0);
+    const velocity = formatArabic(landingMission.verticalSpeed.toFixed(1));
+    const fuel = formatArabic(Math.round(landingMission.fuel));
+    $('#landingResult').textContent = L(`إشارة LUMA-1 عادت · ${score} نقطة`, `LUMA-1 ONLINE · ${score} PTS`);
+    $('#landingResultText').textContent = L(`نجاح الإنقاذ. سرعة الهبوط ${velocity} م/ث، والوقود المتبقي ${fuel}٪. جاذبية القمر ١٫٦٢ م/ث².`, `Rescue complete. Touchdown at ${velocity} m/s with ${fuel}% fuel left. Lunar gravity: 1.62 m/s².`);
+    $('#landingRetry').textContent = L('إنقاذ جديد', 'NEW RESCUE');
+    $('#landingTip').textContent = L('أحسنت — بُثّت إشارة الإنقاذ من جديد.', 'Well done — the rescue signal is back online.');
+  } else if (landingMission?.outcome === 'crashed') {
+    $('#landingResult').textContent = L('انقطع الاتصال — حاول مجددًا', 'SIGNAL LOST — TRY AGAIN');
+    $('#landingResultText').textContent = L('فقدت منارة LUMA-1 الإشارة. خفّض سرعة الهبوط، ووجّه المؤشر إلى الحلقة، ووفر الوقود.', 'LUMA-1 is still offline. Slow your descent, guide the marker into the ring, and conserve fuel.');
+    $('#landingRetry').textContent = L('أعد المحاولة', 'TRY AGAIN');
+    $('#landingTip').textContent = L('حاول مجددًا — تبدأ الجاذبية بسحبك فورًا.', 'Try again — lunar gravity starts pulling immediately.');
+  }
+  $('#pauseButton').setAttribute('aria-label', paused ? L('استئناف الحركة', 'Resume simulation') : L('إيقاف الحركة مؤقتاً', 'Pause simulation'));
+  $('#homeView').setAttribute('aria-label', L('إعادة عرض النظام الشمسي', 'Reset solar system view'));
+}
+$('#languageToggle').addEventListener('click', () => {
+  currentLanguage = currentLanguage === 'ar' ? 'en' : 'ar';
+  try { localStorage.setItem('apollo-v-language', currentLanguage); } catch {}
+  applyLanguage();
+});
 function playTone(frequency = 520, duration = 0.1) {
   if (!soundEnabled) return;
   try {
@@ -246,9 +479,11 @@ function setSelection(key, openModal = true) {
   if (!planetData[key]) return;
   selected = key;
   document.querySelectorAll('.body-row').forEach(row => row.classList.toggle('selected', row.dataset.focus === key));
-  $('#activeTitle').textContent = key === 'sun' ? 'استكشف قلب النظام الشمسي' : `استكشف ${planetData[key].name}`;
-  $('#activeSummary').textContent = key === 'sun' ? 'مصدر الضوء والطاقة؛ اضغط لقراءة ملف النجم المركزي.' : `اقترب من ${planetData[key].name} وافتح ملفه العلمي لمعرفة أسراره ومهمات ناسا المرتبطة به.`;
-  $('#sceneTitle').textContent = planetData[key].name;
+  const launchView = key === 'moon' && !openModal;
+  $('#activeTitle').textContent = launchView ? 'اهبط بالمركبة قبل نفاد الوقود' : key === 'sun' ? 'استكشف قلب النظام الشمسي' : `استكشف ${planetData[key].name}`;
+  $('#activeSummary').textContent = launchView ? 'اضبط الدفع والانحراف. الهبوط الناعم وحده يُكمل المهمة.' : key === 'sun' ? 'مصدر الضوء والطاقة؛ اضغط لقراءة ملف النجم المركزي.' : `اقترب من ${planetData[key].name} وافتح ملفه العلمي لمعرفة أسراره ومهمات ناسا المرتبطة به.`;
+  $('#sceneTitle').textContent = launchView ? 'هل تهبط بأمان؟' : planetData[key].name;
+  $('#sceneHint').textContent = launchView ? 'وقود محدود · جاذبية حقيقية · لمسة واحدة للنجاح' : 'افتح الملف لاستكشاف البيانات ومهمات NASA';
   if (openModal) openPlanetModal(key);
 }
 function openPlanetModal(key) {
@@ -271,11 +506,11 @@ function openPlanetModal(key) {
 function closeModal() { $('#planetModal').hidden = true; }
 function focusOn(key) {
   const point = key === 'sun' ? new THREE.Vector3() : getWorldPosition(key);
-  const distance = key === 'jupiter' ? 5.4 : key === 'sun' ? 11 : key === 'moon' ? 2.6 : 4.0;
+  const distance = key === 'jupiter' ? 5.4 : key === 'sun' ? 11 : key === 'moon' ? 1.55 : 4.0;
   const direction = new THREE.Vector3(0.58, 0.48, 0.65).normalize();
   controls.target.copy(point);
   camera.position.copy(point).addScaledVector(direction, distance);
-  controls.minDistance = key === 'sun' ? 4.8 : 1.2;
+  controls.minDistance = key === 'sun' ? 4.8 : key === 'moon' ? 0.55 : 1.2;
   controls.update();
 }
 
@@ -312,51 +547,227 @@ function launchMission() {
   closeModal();
   const start = getWorldPosition('earth').clone();
   const target = getWorldPosition(selectedDestination).clone();
-  activeMission = { start, target, progress: 0, duration: 13 };
+  activeMission = { start, target, progress: 0, duration: 5 };
   rocket.group.visible = true;
   $('#launchButton').disabled = true;
   $('#abortButton').hidden = false;
-  $('#missionState').textContent = `Apollo V في طريقها إلى ${destinationData[selectedDestination].name}`;
-  $('#flightStatus').textContent = 'انطلقت';
+  $('#missionState').textContent = L(`Apollo V في طريقها إلى ${destinationData[selectedDestination].name}`, `Apollo V en route to ${destinationData[selectedDestination].name}`);
+  $('#flightStatus').textContent = L('انطلقت', 'LAUNCHED');
   $('#flightStatus').style.color = '#83e3ee';
-  $('#flightTime').textContent = '٠٠:٠٠';
+  $('#abortButton').textContent = L('إلغاء الرحلة', 'ABORT FLIGHT');
+  $('#flightTime').textContent = L('٠٠:٠٠', '00:00');
   $('.route-ship').style.right = '8px';
   playTone(390, 0.22);
-  showToast(`انطلقت المركبة! تابع رحلتها إلى ${destinationData[selectedDestination].name}.`);
+  showToast(`انطلقت Apollo V — استعد للتحكم اليدوي عند الاقتراب من ${destinationData[selectedDestination].name}.`);
+}
+function updateLandingHud() {
+  if (!landingMission) return;
+  const m = landingMission;
+  $('#landAltitude').textContent = formatArabic(Math.max(0, Math.ceil(m.altitude)));
+  const signedVertical = `${m.verticalSpeed < 0 ? '−' : ''}${formatArabic(Math.round(Math.abs(m.verticalSpeed)))}`;
+  $('#landVertical').textContent = signedVertical;
+  $('#landFuel').textContent = formatArabic(Math.round(m.fuel));
+  $('#flightTime').textContent = `${L('٠٠:', '00:')}${formatArabic(Math.floor(m.elapsed).toString().padStart(2, '0'))}`;
+  $('#landFuelBar').style.width = `${Math.max(0, m.fuel)}%`;
+  $('#landFuelBar').style.background = m.fuel < 15 ? 'linear-gradient(90deg,#ff756f,#ffbf70)' : 'linear-gradient(90deg,#70e5b3,#ffcc76)';
+  const marker = Math.max(4, Math.min(96, 50 + m.lateral / 5));
+  $('#landMarker').style.left = `${marker}%`;
+  $('#landMarker').style.borderColor = Math.abs(m.lateral) < 38 ? '#70e5b3' : '#ffbc76';
+  $('#landMarker').style.background = Math.abs(m.lateral) < 38 ? '#70e5b3' : '#ffbc76';
+}
+function startLandingChallenge() {
+  if (activeMission || (landingMission && !landingMission.outcome)) { showToast(L('أكمل محاولة الهبوط الحالية أولاً.', 'Finish or abort the current descent first.')); return; }
+  landingMission = null;
+  landingCraft.visible = false;
+  closeModal();
+  $('#workshop').hidden = true;
+  const center = getWorldPosition('moon');
+  const earthCenter = getWorldPosition('earth');
+  const normal = center.clone().sub(earthCenter).normalize();
+  const tangent = new THREE.Vector3().crossVectors(normal, new THREE.Vector3(0, 1, 0)).normalize();
+  landingMission = { altitude: 320, verticalSpeed: 26, lateral: 120, lateralSpeed: -2.5, fuel: 42, normal, tangent, outcome: null, elapsed: 0 };
+  const surfaceOffset = moon.radius + landingMission.altitude * 0.00012;
+  landingCraft.position.copy(center).addScaledVector(normal, surfaceOffset).addScaledVector(tangent, landingMission.lateral * 0.00012);
+  landingCraft.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+  landingCraft.visible = true;
+  rescueBeacon.group.visible = true;
+  rescueBeacon.group.position.copy(center).addScaledVector(normal, moon.radius + 0.007);
+  rescueBeacon.group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+  rescueBeacon.signal.color.set(0xffbd72);
+  rescueBeacon.signal.emissive.set(0xff8a3d);
+  rescueBeacon.signal.emissiveIntensity = 1.5;
+  rescueBeacon.ringMaterial.color.set(0xffbd72);
+  landingInput.thrust = false;
+  landingInput.steer = 0;
+  $('#landingHud').hidden = false;
+  $('#landingEnd').hidden = true;
+  $('#landingEnd').classList.remove('fail');
+  $('#landingTip').textContent = L('نبضات قصيرة للدفع. خفّض سرعة الهبوط، ولا تهدر الوقود.', 'Use short thrust bursts. Slow your descent and conserve fuel.');
+  $('#landingResult').textContent = L('تم استعادة الإشارة!', 'SIGNAL RESTORED!');
+  $('#landingResultText').textContent = '';
+  $('#landThrust').classList.remove('pressed');
+  document.querySelectorAll('[data-land-steer]').forEach(button => button.classList.remove('pressed'));
+  $('#missionState').textContent = L('الهبوط جارٍ · أعد إشارة LUMA-1', 'DESCENT IN PROGRESS · RESTORE LUMA-1');
+  $('#flightStatus').textContent = L('الهبوط النهائي', 'FINAL DESCENT');
+  $('#flightStatus').style.color = '#ffc47a';
+  $('#flightTime').textContent = L('٠٠:٠٠', '00:00');
+  $('#launchButton').disabled = true;
+  $('#abortButton').hidden = false;
+  $('#abortButton').textContent = L('إنهاء المحاولة', 'ABORT ATTEMPT');
+  const target = landingCraft.position.clone();
+  const cameraOffset = normal.clone().multiplyScalar(0.16).addScaledVector(tangent, 0.82);
+  controls.target.copy(target);
+  camera.position.copy(target).add(cameraOffset);
+  landingFillLight.position.copy(camera.position);
+  landingFillLight.intensity = 1.2;
+  controls.minDistance = 0.16;
+  controls.maxDistance = 4.5;
+  controls.update();
+  updateLandingHud();
+  playTone(620, 0.15);
+  showToast(L('منارة LUMA-1 أمامك — اقترب من الحلقة الذهبية.', 'LUMA-1 beacon ahead — aim for the gold ring.'));
+}
+function endLanding(success) {
+  if (!landingMission || landingMission.outcome) return;
+  landingMission.outcome = success ? 'landed' : 'crashed';
+  landingInput.thrust = false;
+  landingInput.steer = 0;
+  landingCraft.userData.flame.visible = false;
+  $('#landThrust').classList.remove('pressed');
+  document.querySelectorAll('[data-land-steer]').forEach(button => button.classList.remove('pressed'));
+  $('#landingEnd').hidden = false;
+  $('#landingEnd').classList.toggle('fail', !success);
+  if (success) {
+    const score = Math.max(100, Math.round(1000 - Math.abs(landingMission.lateral) * 2 - Math.abs(landingMission.verticalSpeed) * 45 - Math.abs(landingMission.lateralSpeed) * 30 + landingMission.fuel * 2));
+    landingMission.score = score;
+    rescueBeacon.signal.color.set(0x83ffc0);
+    rescueBeacon.signal.emissive.set(0x22e69a);
+    rescueBeacon.signal.emissiveIntensity = 2.8;
+    rescueBeacon.ringMaterial.color.set(0x83ffc0);
+    $('#landingResult').textContent = L(`إشارة LUMA-1 عادت · ${formatArabic(score)} نقطة`, `LUMA-1 ONLINE · ${formatArabic(score)} PTS`);
+    $('#landingResultText').textContent = L(`نجاح الإنقاذ. هبطت بسرعة ${formatArabic(landingMission.verticalSpeed.toFixed(1))} م/ث، وبقي ${formatArabic(Math.round(landingMission.fuel))}٪ من الوقود. جاذبية القمر ١٫٦٢ م/ث².`, `Rescue complete. Touchdown at ${formatArabic(landingMission.verticalSpeed.toFixed(1))} m/s with ${formatArabic(Math.round(landingMission.fuel))}% fuel left. Lunar gravity: 1.62 m/s².`);
+    $('#flightStatus').textContent = L('أُعيد بث الإشارة', 'SIGNAL RESTORED');
+    $('#flightStatus').style.color = '#83e3a9';
+    $('#missionState').textContent = L('اكتمل الإنقاذ · الإشارة عادت', 'RESCUE COMPLETE · SIGNAL RESTORED');
+    playTone(790, 0.28);
+  } else {
+    const reason = Math.abs(landingMission.lateral) >= 38 ? L('خرجت عن منطقة الهبوط.', 'You missed the landing zone.') : landingMission.verticalSpeed > 5.5 ? L('سرعة الاصطدام كانت عالية.', 'Touchdown speed was too high.') : Math.abs(landingMission.lateralSpeed) >= 2.5 ? L('الانحراف الجانبي لم يستقر.', 'Lateral drift was not under control.') : L('لم تستقر المركبة فوق السطح.', 'The lander did not stabilize above the surface.');
+    $('#landingResult').textContent = L('انقطع الاتصال — حاول مجددًا', 'SIGNAL LOST — TRY AGAIN');
+    $('#landingResultText').textContent = `${reason} ${L('خفّض السرعة، ووجّه المؤشر إلى الحلقة، ووفر الوقود.', 'Slow down, guide the marker into the ring, and conserve fuel.')}`;
+    $('#landingEnd').classList.add('fail');
+    $('#flightStatus').textContent = L('فشلت المحاولة', 'ATTEMPT FAILED');
+    $('#flightStatus').style.color = '#ff957e';
+    $('#missionState').textContent = L('فُقدت الإشارة · حاول مجددًا', 'SIGNAL LOST · TRY AGAIN');
+    playTone(180, 0.3);
+  }
+  $('#landingRetry').textContent = success ? L('إنقاذ جديد', 'NEW RESCUE') : L('أعد المحاولة', 'TRY AGAIN');
+  $('#abortButton').hidden = true;
+  $('#launchButton').disabled = false;
+  $('#landingTip').textContent = success ? L('أحسنت — بُثّت إشارة الإنقاذ من جديد.', 'Well done — the rescue signal is back online.') : L('حاول مجددًا — تبدأ الجاذبية بسحبك فورًا.', 'Try again — lunar gravity starts pulling immediately.');
+}
+function updateLandingChallenge(delta) {
+  const m = landingMission;
+  if (!m || m.outcome || paused) return;
+  const dt = delta;
+  const thrusting = landingInput.thrust && m.fuel > 0;
+  if (thrusting) {
+    m.verticalSpeed += (1.62 - 4.45) * dt;
+    m.fuel = Math.max(0, m.fuel - 1.05 * dt);
+  } else {
+    m.verticalSpeed += 1.62 * dt;
+  }
+  m.verticalSpeed = Math.max(-7, Math.min(48, m.verticalSpeed));
+  m.lateralSpeed += landingInput.steer * 7.5 * dt;
+  m.lateralSpeed *= Math.max(0, 1 - 0.22 * dt);
+  m.lateral += m.lateralSpeed * dt;
+  m.altitude -= m.verticalSpeed * dt;
+  m.elapsed += dt;
+  const center = getWorldPosition('moon');
+  const surfaceOffset = moon.radius + Math.max(0, m.altitude) * 0.00012;
+  landingCraft.position.copy(center).addScaledVector(m.normal, surfaceOffset).addScaledVector(m.tangent, m.lateral * 0.00012);
+  rescueBeacon.group.position.copy(center).addScaledVector(m.normal, moon.radius + 0.007);
+  rescueBeacon.group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), m.normal);
+  const baseRotation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), m.normal);
+  const lean = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.max(-0.2, Math.min(0.2, m.lateralSpeed * 0.012)));
+  landingCraft.quaternion.copy(baseRotation).multiply(lean);
+  landingCraft.userData.flame.visible = thrusting;
+  if (thrusting) landingCraft.userData.flame.scale.setScalar(0.8 + Math.random() * 0.5);
+  landingCraft.userData.marker.scale.setScalar(1 + Math.sin(m.elapsed * 4) * 0.08);
+  const cameraTarget = landingCraft.position.clone();
+  const cameraOffset = m.normal.clone().multiplyScalar(0.16).addScaledVector(m.tangent, 0.82);
+  controls.target.copy(cameraTarget);
+  camera.position.copy(cameraTarget).add(cameraOffset);
+  landingFillLight.position.copy(camera.position);
+  updateLandingHud();
+  if (m.altitude <= 0) endLanding(m.verticalSpeed >= 0 && m.verticalSpeed <= 5.5 && Math.abs(m.lateral) < 38 && Math.abs(m.lateralSpeed) < 2.5);
 }
 function finishMission() {
   activeMission = null;
   rocket.group.visible = false;
+  $('#flightTime').textContent = '٠٠:٠٥';
+  $('.route-ship').style.right = 'calc(100% - 18px)';
+  if (selectedDestination === 'moon') {
+    startLandingChallenge();
+    return;
+  }
   $('#launchButton').disabled = false;
   $('#abortButton').hidden = true;
-  $('#missionState').textContent = 'اكتملت المهمة بنجاح';
-  $('#flightStatus').textContent = 'اكتملت';
+  $('#missionState').textContent = 'اكتملت الرحلة';
+  $('#flightStatus').textContent = 'وصلت المركبة';
   $('#flightStatus').style.color = '#83e3a9';
-  $('#flightTime').textContent = '٠٠:١٣';
-  $('.route-ship').style.right = 'calc(100% - 18px)';
   playTone(790, 0.23);
-  showToast(selectedDestination === 'jupiter' ? 'وصلت المركبة إلى طبقة السحب الافتراضية. المشتري لا يملك سطحاً صلباً للهبوط.' : selectedDestination === 'moon' ? 'اكتملت رحلة Apollo V التعليمية. حقيقة: جاذبية القمر ١٫٦٢ م/ث²، واختبرت Apollo 5 الوحدة القمرية دون رواد.' : `وصلت المركبة إلى ${destinationData[selectedDestination].name}. تذكّر أن هذه محاكاة تعليمية مبسّطة.`);
+  showToast(selectedDestination === 'jupiter' ? 'وصلت المركبة إلى طبقة السحب الافتراضية. المشتري لا يملك سطحاً صلباً للهبوط.' : `وصلت المركبة إلى ${destinationData[selectedDestination].name}.`);
 }
 function abortMission() {
-  if (!activeMission) return;
+  if (!activeMission && !landingMission) return;
   activeMission = null;
+  landingMission = null;
   rocket.group.visible = false;
+  landingCraft.visible = false;
+  landingCraft.userData.flame.visible = false;
+  landingInput.thrust = false;
+  landingInput.steer = 0;
+  $('#landingHud').hidden = true;
+  rescueBeacon.group.visible = false;
+  landingFillLight.intensity = 0;
   $('#launchButton').disabled = false;
   $('#abortButton').hidden = true;
-  $('#missionState').textContent = 'مهمة القمر جاهزة';
-  $('#flightStatus').textContent = 'أُلغيت';
+  $('#missionState').textContent = L('منارة LUMA-1 تنتظر الإنقاذ', 'LUMA-1 beacon awaiting rescue');
+  $('#flightStatus').textContent = L('أُلغيت', 'ABORTED');
   $('#flightStatus').style.color = '#ff957e';
-  $('#flightTime').textContent = 'جاهز';
+  $('#flightTime').textContent = L('جاهز', 'READY');
   $('.route-ship').style.right = '8px';
-  showToast('تم إلغاء الرحلة. يمكنك الإطلاق مجدداً في أي وقت.');
+  showToast(L('أُلغيت المحاولة. يمكنك بدء الإنقاذ مجدداً.', 'Attempt aborted. You can launch the rescue again.'));
 }
 $('#launchButton').addEventListener('click', openWorkshop);
+$('#quickPlay').addEventListener('click', startLandingChallenge);
 $('#abortButton').addEventListener('click', abortMission);
+$('#landingExit').addEventListener('click', abortMission);
+$('#landingRetry').addEventListener('click', startLandingChallenge);
+$('#landThrust').addEventListener('pointerdown', event => { event.preventDefault(); landingInput.thrust = true; event.currentTarget.classList.add('pressed'); });
+['pointerup', 'pointercancel', 'pointerleave', 'lostpointercapture'].forEach(type => $('#landThrust').addEventListener(type, () => { landingInput.thrust = false; $('#landThrust').classList.remove('pressed'); }));
+document.querySelectorAll('[data-land-steer]').forEach(button => {
+  const direction = Number(button.dataset.landSteer);
+  button.addEventListener('pointerdown', event => { event.preventDefault(); landingInput.steer = direction; button.classList.add('pressed'); });
+  ['pointerup', 'pointercancel', 'pointerleave', 'lostpointercapture'].forEach(type => button.addEventListener(type, () => { if (landingInput.steer === direction) landingInput.steer = 0; button.classList.remove('pressed'); }));
+});
+window.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !$('#workshop').hidden) { closeWorkshop(); return; }
+  if (!landingMission || landingMission.outcome) return;
+  if (event.code === 'Space' || event.code === 'ArrowUp') { event.preventDefault(); landingInput.thrust = true; $('#landThrust').classList.add('pressed'); }
+  if (event.code === 'ArrowLeft' || event.code === 'KeyA') { event.preventDefault(); landingInput.steer = -1; document.querySelector('[data-land-steer="-1"]').classList.add('pressed'); }
+  if (event.code === 'ArrowRight' || event.code === 'KeyD') { event.preventDefault(); landingInput.steer = 1; document.querySelector('[data-land-steer="1"]').classList.add('pressed'); }
+});
+window.addEventListener('keyup', event => {
+  if (event.code === 'Space' || event.code === 'ArrowUp') { landingInput.thrust = false; $('#landThrust').classList.remove('pressed'); }
+  if (event.code === 'ArrowLeft' || event.code === 'KeyA') { if (landingInput.steer === -1) landingInput.steer = 0; document.querySelector('[data-land-steer="-1"]').classList.remove('pressed'); }
+  if (event.code === 'ArrowRight' || event.code === 'KeyD') { if (landingInput.steer === 1) landingInput.steer = 0; document.querySelector('[data-land-steer="1"]').classList.remove('pressed'); }
+});
 $('#pauseButton').addEventListener('click', () => {
   paused = !paused;
   $('#pauseButton').textContent = paused ? '▶' : 'Ⅱ';
   $('#pauseButton').setAttribute('aria-label', paused ? 'استئناف الحركة' : 'إيقاف الحركة مؤقتاً');
-  $('#missionState').textContent = paused ? 'المحاكاة متوقفة مؤقتاً' : (activeMission ? `Apollo V في طريقها إلى ${destinationData[selectedDestination].name}` : 'مهمة القمر جاهزة');
+  $('#missionState').textContent = paused ? 'المحاكاة متوقفة مؤقتاً' : (landingMission && !landingMission.outcome ? 'تحكّم يدوي · مرحلة الهبوط' : activeMission ? `Apollo V في طريقها إلى ${destinationData[selectedDestination].name}` : 'مهمة القمر جاهزة');
 });
 $('#speedRange').addEventListener('input', event => {
   speed = [0, 0.5, 1, 2][Number(event.target.value)];
@@ -364,7 +775,7 @@ $('#speedRange').addEventListener('input', event => {
 });
 $('#zoomIn').addEventListener('click', () => { camera.position.addScaledVector(camera.position.clone().sub(controls.target).normalize(), -2); controls.update(); });
 $('#zoomOut').addEventListener('click', () => { camera.position.addScaledVector(camera.position.clone().sub(controls.target).normalize(), 2); controls.update(); });
-$('#homeView').addEventListener('click', () => { closeModal(); controls.target.copy(homeTarget); camera.position.copy(homeCameraPosition); controls.minDistance = 5.5; selected = ''; setSelection('earth', false); $('#sceneTitle').textContent = 'النظام الشمسي'; controls.update(); });
+$('#homeView').addEventListener('click', () => { if (landingMission) { showToast('أكمل الجولة أو أغلق نتيجة الهبوط أولاً.'); return; } closeModal(); controls.target.copy(homeTarget); camera.position.copy(homeCameraPosition); controls.minDistance = 5.5; selected = ''; setSelection('earth', false); $('#sceneTitle').textContent = 'النظام الشمسي'; controls.update(); });
 $('#soundToggle').addEventListener('click', event => {
   soundEnabled = !soundEnabled;
   event.currentTarget.textContent = soundEnabled ? '♫' : '♪';
@@ -410,10 +821,11 @@ function animate() {
     const flicker = 0.82 + Math.random() * 0.38;
     rocket.flame.scale.setScalar(flicker);
     rocket.innerFlame.scale.setScalar(0.75 + Math.random() * 0.4);
-    $('#flightTime').textContent = `٠٠:${formatArabic(Math.min(13, Math.floor(t * 13)).toString().padStart(2, '0'))}`;
+    $('#flightTime').textContent = `٠٠:${formatArabic(Math.min(5, Math.floor(t * 5)).toString().padStart(2, '0'))}`;
     $('.route-ship').style.right = `${8 + t * 72}%`;
     if (t >= 1) finishMission();
   }
+  updateLandingChallenge(delta);
   controls.update();
   renderer.render(scene, camera);
   if (previewRenderer && !$('#workshop').hidden) {
@@ -424,7 +836,7 @@ function animate() {
     previewRenderer.render(previewScene, previewCamera);
   }
 }
-setSelection('earth', false);
+setSelection('moon', false);
 animate();
 
 
@@ -754,7 +1166,10 @@ function resizePreview() {
 }
 
 function openWorkshop() {
-  if (activeMission) { showToast('انتظر حتى تنتهي المهمة الحالية أو ألغها أولاً.'); return; }
+  if (activeMission || (landingMission && !landingMission.outcome)) { showToast('انتظر حتى تنتهي المهمة الحالية أو ألغها أولاً.'); return; }
+  landingMission = null;
+  landingCraft.visible = false;
+  $('#landingHud').hidden = true;
   $('#workshop').hidden = false;
   resizePreview();
   updateEngineering();
@@ -835,3 +1250,4 @@ function initWorkshop() {
   window.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('#workshop').hidden) closeWorkshop(); });
 }
 initWorkshop();
+applyLanguage();

@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#050914">
-  <meta name="description" content="Apollo V: تجربة ثلاثية الأبعاد لتصميم مركبة فضائية، اختبارها، والانطلاق في مهمة قمرية مستندة إلى بيانات ومصادر NASA.">
-  <title>Apollo V — بعثة القمر</title>
+  <meta name="description" content="Apollo V: لعبة إنقاذ قمرية ثلاثية الأبعاد وثنائية اللغة. اهبط قرب منارة LUMA-1 وأعد الإشارة بوقود محدود وجاذبية قمرية مستندة إلى بيانات NASA.">
+  <title>Apollo V — إنقاذ منارة LUMA-1</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -17,12 +17,13 @@
     <div class="vignette" aria-hidden="true"></div>
     <header class="topbar glass">
       <a class="brand" href="#" aria-label="Apollo V — بعثة القمر"><span class="brand-mark"><i></i><i></i><i></i></span><span><b>APOLLO V</b><small>فريق استكشاف القمر</small></span></a>
-      <div class="live-status"><span class="pulse"></span><span>محاكاة ثلاثية الأبعاد</span><span class="status-divider"></span><span id="missionState">مهمة القمر جاهزة</span></div>
+      <div class="live-status"><span class="pulse"></span><span id="simulationLabel">مهمة إنقاذ ثلاثية الأبعاد</span><span class="status-divider"></span><span id="missionState">منارة LUMA-1 تنتظر الإنقاذ</span></div>
+      <button id="languageToggle" class="top-icon language-toggle" type="button" aria-label="Switch to English" title="English">EN</button>
       <button id="soundToggle" class="top-icon" title="تشغيل أو إيقاف الصوت" aria-label="تشغيل الصوت">♫</button>
     </header>
     <aside class="mission-panel glass" aria-label="لوحة التحكم بالمهمة">
-      <div class="panel-head"><div><div class="eyebrow"><span class="eyebrow-dot"></span> بعثة Apollo V · غرفة العمليات</div><h1>العودة إلى <em>القمر</em></h1></div><span class="panel-symbol">⌘</span></div>
-      <div class="mission-card"><div class="mission-card-top"><span class="mission-icon">✦</span><span class="mission-code">تحدّي استكشاف · هندسة + علم</span></div><h2 id="activeTitle">صمّم مركبةً للرحلة القمرية</h2><p id="activeSummary">اختر تجهيزاتك، اختبر الدفع والوقود والحماية، ثم أطلق مركبتك في رحلة ثلاثية الأبعاد إلى القمر.</p><div class="mission-meta"><span><i class="meta-dot cyan"></i> قراراتك تغيّر النتيجة</span><span><i class="meta-dot orange"></i> حقائق من NASA</span></div></div>
+      <div class="panel-head"><div><div class="eyebrow"><span class="eyebrow-dot"></span> بعثة Apollo V · غرفة العمليات</div><h1>عودة إلى <em>القمر</em></h1></div><span class="panel-symbol">⌘</span></div>
+      <div class="mission-card"><div class="mission-card-top"><span class="mission-icon">✦</span><span class="mission-code">عملية ٠١ · إنقاذ الإشارة</span></div><h2 id="activeTitle">أعِد إشارة LUMA-1</h2><p id="activeSummary">انقطعت منارة الإنقاذ على الوجه البعيد. اهبط قربها لتعيد بث الإشارة.</p><div class="mission-meta"><span><i class="meta-dot cyan"></i> تحكّم مباشر</span><span><i class="meta-dot orange"></i> جاذبية NASA</span></div><button id="quickPlay" class="quick-play" type="button">ابدأ الإنقاذ <span>←</span></button></div>
       <div class="section-label"><span>استكشف الأجرام</span><span class="section-count">٠٤</span></div>
       <div class="body-list">
         <button class="body-row" data-focus="earth"><span class="body-orb earth-orb"></span><span class="body-name"><b>الأرض</b><small>كوكبنا الأزرق</small></span><span class="body-distance">١ وحدة فلكية</span><span class="row-arrow">↙</span></button>
@@ -30,13 +31,24 @@
         <button class="body-row" data-focus="mars"><span class="body-orb mars-orb"></span><span class="body-name"><b>المريخ</b><small>الكوكب الأحمر</small></span><span class="body-distance">١٫٥٢ وحدة فلكية</span><span class="row-arrow">↙</span></button>
         <button class="body-row" data-focus="jupiter"><span class="body-orb jupiter-orb"></span><span class="body-name"><b>المشتري</b><small>عملاق الغاز</small></span><span class="body-distance">٥٫٢ وحدة فلكية</span><span class="row-arrow">↙</span></button>
       </div>
-      <div class="flight-card"><div class="flight-heading"><div><span class="flight-kicker">مسار المهمة</span><b>الأرض <span class="route-arrow">←</span> <span id="routeTarget">القمر</span></b></div><span class="rocket-glyph">↗</span></div><div class="route-track"><span class="route-point start"></span><span class="route-line"></span><span class="route-point end"></span><span class="route-ship">◆</span></div><div class="flight-stats"><span>المدة <b id="flightTime">جاهز</b></span><span>الحالة <b class="ready-text" id="flightStatus">بانتظار التصميم</b></span></div><button id="launchButton" class="launch-button"><span>ابدأ مهمة القمر</span><span class="launch-arrow">←</span></button><button id="abortButton" class="abort-button" hidden>إلغاء المهمة</button></div>
+      <div class="flight-card"><div class="flight-heading"><div><span class="flight-kicker">مسار الإنقاذ</span><b>الأرض <span class="route-arrow">←</span> <span id="routeTarget">القمر</span></b></div><span class="rocket-glyph">↗</span></div><div class="route-track"><span class="route-point start"></span><span class="route-line"></span><span class="route-point end"></span><span class="route-ship">◆</span></div><div class="flight-stats"><span>المدة <b id="flightTime">جاهز</b></span><span>الحالة <b class="ready-text" id="flightStatus">بانتظار الإنقاذ</b></span></div><button id="launchButton" class="launch-button"><span>مختبر المركبة</span><span class="launch-arrow">⚙</span></button><button id="abortButton" class="abort-button" hidden>إنهاء المهمة</button></div>
       <div class="panel-bottom"><span class="connection"><i></i> بيانات موثقة</span><span>فريق Apollo V</span></div>
     </aside>
-    <div class="scene-title"><span class="scene-label"><i></i> مهمة قمرية ثلاثية الأبعاد</span><h2 id="sceneTitle">الأرض والقمر</h2><p id="sceneHint">استكشف المشهد، ثم صمّم مركبة المهمة</p></div>
+    <div class="scene-title"><span class="scene-label"><i></i> عملية إنقاذ LUMA-1</span><h2 id="sceneTitle">أعِد بث الإشارة</h2><p id="sceneHint">هبوط ناعم · وقود محدود · نافذة إنقاذ واحدة</p></div>
     <div class="camera-hint glass"><span class="drag-icon">✥</span><span>اسحب للدوران<br><small>مرّر للتقريب · زر يمين للتحريك</small></span></div>
     <div class="bottom-bar"><div class="scale-note"><span>المسافات والأحجام مصغّرة للمحاكاة</span><span class="scale-rule"><i></i><i></i></span></div><div class="sim-controls glass"><button id="zoomOut" class="control-button" aria-label="إبعاد الكاميرا">−</button><button id="homeView" class="control-button home-control" aria-label="إعادة عرض النظام الشمسي">⌂</button><button id="zoomIn" class="control-button" aria-label="تقريب الكاميرا">+</button><span class="control-divider"></span><button id="pauseButton" class="control-button pause-control" aria-label="إيقاف الحركة مؤقتاً">Ⅱ</button><div class="speed-control"><label for="speedRange">السرعة</label><input id="speedRange" type="range" min="0" max="3" value="1" step="1"><span id="speedValue">١×</span></div></div><div class="legend"><span><i class="legend-sun"></i> الشمس</span><span><i class="legend-planet"></i> كواكب</span><span><i class="legend-orbit"></i> مدارات</span></div></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <section class="landing-hud glass" id="landingHud" aria-label="تحدي إنقاذ LUMA-1" hidden>
+      <header class="landing-head"><div><span class="landing-kicker">إشارة إنقاذ · LUMA-1</span><h2>الهبوط قرب المنارة</h2></div><button id="landingExit" type="button" aria-label="إنهاء المحاولة">×</button></header>
+      <p class="landing-objective" id="landingObjective">وجّه المركبة إلى منطقة الإشارة وخفّض سرعتك قبل ملامسة السطح.</p>
+      <div class="landing-readouts"><div><small>ارتفاع</small><b><span id="landAltitude">٩٥٠</span><i>م</i></b></div><div><small>سرعة الهبوط</small><b><span id="landVertical">٣١</span><i>م/ث</i></b></div><div><small>وقود المناورة</small><b><span id="landFuel">٣٦</span><i>٪</i></b></div></div>
+      <div class="landing-fuel"><i id="landFuelBar"></i></div>
+      <div class="landing-science"><span>جاذبية القمر</span><strong>١٫٦٢ م/ث² · NASA</strong></div>
+      <div class="landing-target"><span>منطقة الهبوط</span><div class="target-track"><i></i><b id="landMarker"></b></div><small>صحّح الانحراف حتى يدخل المؤشر الدائرة</small></div>
+      <div class="landing-controls"><button class="steer-control" type="button" data-land-steer="-1">◀<small>يسار</small></button><button id="landThrust" class="thrust-control" type="button">اضغط للدفع<small><kbd>SPACE</kbd> أو استمر بالضغط</small></button><button class="steer-control" type="button" data-land-steer="1">▶<small>يمين</small></button></div>
+      <p class="landing-tip" id="landingTip">نبضات قصيرة للدفع. خفّض سرعة الهبوط، ولا تهدر الوقود.</p>
+      <div class="landing-end" id="landingEnd" hidden><strong id="landingResult">هبوط ناجح</strong><p id="landingResultText"></p><button id="landingRetry" type="button">أعد المحاولة</button></div>
+    </section>
     <section class="workshop-backdrop" id="workshop" role="dialog" aria-modal="true" aria-labelledby="workshopTitle" hidden>
       <div class="workshop-window">
         <header class="workshop-header"><div class="workshop-brand"><span class="workshop-badge">⚙</span><div><span class="workshop-kicker">Apollo V · مختبر المهمة القمرية</span><h2 id="workshopTitle">صمّم <em>مركبتك</em></h2></div></div><div class="workshop-header-note"><span class="header-live"></span> اختياراتك تغيّر نتيجة الفحص</div><button class="modal-close" id="closeWorkshop" aria-label="إغلاق الورشة">×</button></header>
@@ -75,6 +87,6 @@
       }
     }
   </script>
-  <script type="module" src="script.js"></script>
+  <script type="module" src="script.js?v=apollo-v-20261111e"></script>
 </body>
 </html>
