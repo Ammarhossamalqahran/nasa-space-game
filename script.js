@@ -313,7 +313,7 @@ function setDirectText(selector, value) {
 }
 const staticTranslations = [
   ['.brand small', 'فريق استكشاف القمر', 'Lunar exploration team'],
-  ['#simulationLabel', 'مهمة إنقاذ ثلاثية الأبعاد', '3D rescue mission'],
+  ['#simulationLabel', 'أزمة الإشارة القمرية', 'MOON SIGNAL CRISIS'],
   ['.panel-head .eyebrow', 'بعثة Apollo V · غرفة العمليات', 'Apollo V · Mission control'],
   ['.mission-code', 'عملية ٠١ · إنقاذ الإشارة', 'OP 01 · SIGNAL RESCUE'],
   ['#activeTitle', 'أعِد إشارة LUMA-1', 'Bring LUMA-1 back online'],
@@ -768,7 +768,7 @@ function abortMission() {
 }
 $('#launchButton').addEventListener('click', openWorkshop);
 $('#quickPlay').addEventListener('click', startLandingChallenge);
-const closeMissionBriefing = () => { $('#missionBriefing').hidden = true; };
+const closeMissionBriefing = () => { $('#missionBriefing').hidden = true; document.body.classList.remove('briefing-active'); };
 $('#briefingLaunch').addEventListener('click', () => { closeMissionBriefing(); startLandingChallenge(); });
 $('#briefingExplore').addEventListener('click', closeMissionBriefing);
 $('#briefingSkip').addEventListener('click', closeMissionBriefing);
