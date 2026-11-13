@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=apollo-v-20261113e">
+  <link rel="stylesheet" href="style.css?v=apollo-v-20261113-gameplay1">
 </head>
 <body class="briefing-active">
   <main class="simulator">
@@ -55,16 +55,25 @@
         <footer class="briefing-footer"><span><i></i> THREE.JS · INTERACTIVE 3D</span><span>BUILT BY APOLLO V</span></footer>
       </article>
     </section>
+    <section class="mission-board-backdrop" id="missionBoard" role="dialog" aria-modal="true" aria-labelledby="missionBoardTitle" hidden>
+      <div class="mission-board">
+        <header class="mission-board-header"><div><span class="mission-board-eyebrow"><i></i> APOLLO V · OPERATIONS</span><h2 id="missionBoardTitle">اختر <em>مهمتك</em></h2><p id="missionBoardSubtitle">كل هبوط له ظروفه. تعلّم، أنقذ، ثم واجه العاصفة.</p></div><button id="missionBoardClose" type="button" aria-label="إغلاق قائمة المهمات">×</button></header>
+        <div class="mission-board-stats" id="missionBoardStats"></div>
+        <div class="mission-grid" id="missionGrid"></div>
+        <footer class="mission-board-footer"><span id="missionBoardSaveNote"><i></i> تقدمك وأفضل نتائجك تُحفظ على هذا الجهاز</span><span id="missionBoardGravity">جاذبية القمر · ١٫٦٢ م/ث²</span></footer>
+      </div>
+    </section>
     <section class="landing-hud glass" id="landingHud" aria-label="تحدي إنقاذ LUMA-1" hidden>
       <header class="landing-head"><div><span class="landing-kicker">إشارة إنقاذ · LUMA-1</span><h2>الهبوط قرب المنارة</h2></div><button id="landingExit" type="button" aria-label="إنهاء المحاولة">×</button></header>
-      <p class="landing-objective" id="landingObjective">وجّه المركبة إلى منطقة الإشارة وخفّض سرعتك قبل ملامسة السطح.</p>
+      <p class="landing-objective" id="landingObjective">راقب الارتفاع والانحراف، واستخدم دفعات قصيرة قبل ملامسة السطح.</p>
+      <div class="landing-phase-row"><span id="landingPhase">مرحلة الاقتراب</span><span id="landingCondition">طقس هادئ · منطقة هبوط واسعة</span></div>
       <div class="landing-readouts"><div><small>ارتفاع</small><b><span id="landAltitude">٩٥٠</span><i>م</i></b></div><div><small>سرعة الهبوط</small><b><span id="landVertical">٣١</span><i>م/ث</i></b></div><div><small>وقود المناورة</small><b><span id="landFuel">٣٦</span><i>٪</i></b></div></div>
       <div class="landing-fuel"><i id="landFuelBar"></i></div>
       <div class="landing-science"><span>جاذبية القمر</span><strong>١٫٦٢ م/ث² · NASA</strong></div>
       <div class="landing-target"><span>منطقة الهبوط</span><div class="target-track"><i></i><b id="landMarker"></b></div><small>صحّح الانحراف حتى يدخل المؤشر الدائرة</small></div>
       <div class="landing-controls"><button class="steer-control" type="button" data-land-steer="-1">◀<small>يسار</small></button><button id="landThrust" class="thrust-control" type="button">اضغط للدفع<small><kbd>SPACE</kbd> أو استمر بالضغط</small></button><button class="steer-control" type="button" data-land-steer="1">▶<small>يمين</small></button></div>
-      <p class="landing-tip" id="landingTip">نبضات قصيرة للدفع. خفّض سرعة الهبوط، ولا تهدر الوقود.</p>
-      <div class="landing-end" id="landingEnd" hidden><strong id="landingResult">هبوط ناجح</strong><p id="landingResultText"></p><button id="landingRetry" type="button">أعد المحاولة</button></div>
+      <p class="landing-tip" id="landingTip">الأسهم أو A/D للتوجيه · Space للدفع · P للإيقاف المؤقت.</p>
+      <div class="landing-end" id="landingEnd" hidden><div class="landing-medal" id="landingMedal">ميدالية ذهبية</div><strong id="landingResult">هبوط ناجح</strong><p id="landingResultText"></p><small id="landingRecordLine"></small><div class="landing-result-actions"><button id="landingRetry" type="button">أعد المحاولة</button><button id="landingMissionSelect" type="button">قائمة المهمات</button></div></div>
     </section>
     <section class="workshop-backdrop" id="workshop" role="dialog" aria-modal="true" aria-labelledby="workshopTitle" hidden>
       <div class="workshop-window">
@@ -104,6 +113,6 @@
       }
     }
   </script>
-  <script type="module" src="script.js?v=apollo-v-20261113b"></script>
+  <script type="module" src="script.js?v=apollo-v-20261113-gameplay1"></script>
 </body>
 </html>

@@ -296,6 +296,43 @@ let elapsed = 0;
 let activeMission = null;
 let landingMission = null;
 const landingInput = { thrust: false, steer: 0 };
+const landingModes = {
+  training: {
+    name: ['تدريب الهبوط', 'LANDING SCHOOL'], badge: ['تدريب', 'TRAINING'],
+    description: ['اقتراب أهدأ ووقود أكثر. تعلّم التوجيه والفرملة من دون ضغط.', 'A calmer approach and extra fuel. Learn to steer and brake without pressure.'],
+    icon: '◉', difficulty: ['مبتدئ', 'EASY'], start: { altitude: 780, verticalSpeed: 16, lateral: 55, lateralSpeed: -1.15, fuel: 64, targetRadius: 54, driftLimit: 3.2, windAmplitude: 0 }
+  },
+  rescue: {
+    name: ['إنقاذ LUMA-1', 'LUMA-1 RESCUE'], badge: ['المهمة الأساسية', 'MAIN MISSION'],
+    description: ['موازنة الوقود والسرعة والانحراف لإعادة بث الإشارة.', 'Balance fuel, speed, and drift to bring the beacon back online.'],
+    icon: '✦', difficulty: ['متوسط', 'STANDARD'], start: { altitude: 920, verticalSpeed: 23, lateral: 105, lateralSpeed: -1.55, fuel: 49, targetRadius: 38, driftLimit: 2.5, windAmplitude: 0 }
+  },
+  storm: {
+    name: ['عبور العاصفة', 'STORM CROSSING'], badge: ['تحدّي النخبة', 'ELITE CHALLENGE'],
+    description: ['هبات جانبية تتبدل مع الوقت. حافظ على خط الهبوط وسط العاصفة.', 'Crosswinds shift during descent. Hold your line and land through the storm.'],
+    icon: 'ϟ', difficulty: ['صعب', 'HARD'], start: { altitude: 1080, verticalSpeed: 26, lateral: 135, lateralSpeed: -1.8, fuel: 50, targetRadius: 31, driftLimit: 2.2, windAmplitude: 4.8 }
+  }
+};
+let selectedLandingMode = 'rescue';
+const landingModeHeadings = {
+  training: { kicker: ['تدريب القمر · رحلة تعليمية', 'LUNAR PRACTICE · TRAINING'], heading: ['تدريب الهبوط', 'LANDING SCHOOL'], aria: ['تدريب الهبوط على القمر', 'Lunar landing training'] },
+  rescue: { kicker: ['إشارة إنقاذ · LUMA-1', 'RESCUE SIGNAL · LUMA-1'], heading: ['الهبوط قرب المنارة', 'Land by the beacon'], aria: ['تحدي إنقاذ LUMA-1', 'LUMA-1 rescue challenge'] },
+  storm: { kicker: ['تحدّي العاصفة · القمر', 'STORM RUN · MOON'], heading: ['الهبوط وسط الهبات', 'Land through the gusts'], aria: ['عبور عاصفة الهبوط', 'Storm landing challenge'] }
+};
+function updateLandingModeHeading(modeId = selectedLandingMode) {
+  const copy = landingModeHeadings[modeId] || landingModeHeadings.rescue;
+  $('.landing-kicker').textContent = L(...copy.kicker);
+  $('.landing-head h2').textContent = L(...copy.heading);
+  $('#landingHud').setAttribute('aria-label', L(...copy.aria));
+}
+const saveKey = 'apollo-v-flight-records-v1';
+function readFlightRecords() {
+  try {
+    const value = JSON.parse(localStorage.getItem(saveKey) || '{}');
+    return { stormUnlocked: Boolean(value.stormUnlocked), rescues: Math.max(0, Number(value.rescues) || 0), records: value.records && typeof value.records === 'object' ? value.records : {} };
+  } catch { return { stormUnlocked: false, rescues: 0, records: {} }; }
+}
+let flightRecords = readFlightRecords();
 let toastTimer;
 let soundEnabled = true;
 let audioContext;
@@ -320,7 +357,7 @@ const staticTranslations = [
   ['#activeSummary', 'انقطعت منارة الإنقاذ على الوجه البعيد. اهبط قربها لتعيد بث الإشارة.', 'LUMA-1 has gone dark on the far side. Land in the marked zone to restore its signal.'],
   ['.mission-meta span:first-child', 'تحكّم مباشر', 'PILOT CONTROL'],
   ['.mission-meta span:last-child', 'جاذبية NASA', 'NASA GRAVITY'],
-  ['#quickPlay', 'ابدأ الإنقاذ', 'START RESCUE'],
+  ['#quickPlay', 'اختر المهمة', 'CHOOSE MISSION'],
   ['.section-label span:first-child', 'استكشف الأجرام', 'EXPLORE WORLDS'],
   ['.body-row[data-focus="earth"] .body-name b', 'الأرض', 'Earth'],
   ['.body-row[data-focus="earth"] .body-name small', 'كوكبنا الأزرق', 'Our blue home'],
@@ -382,7 +419,7 @@ const staticTranslations = [
   ['#briefingHeadlineTop', 'هبوط واحد.', 'One descent.'],
   ['#briefingHeadlineEm', 'إشارة واحدة لنعيدها.', 'One signal to restore.'],
   ['#briefingIntro', 'LUMA-1 خيالية. يحوّل تحدي الهبوط جاذبية القمر التي تقيسها NASA إلى قرار قابل للعب: وجّه المركبة إلى الحلقة، استخدم الدفع بحذر، واهبط مع وقود متبقٍ.', 'LUMA-1 is fictional. This lander challenge turns NASA’s measured Moon gravity into a playable decision: steer inside the signal ring, spend thrust carefully, and land with fuel to spare.'],
-  ['#briefingLaunch span', 'ابدأ إنقاذ القمر', 'Start lunar rescue'],
+  ['#briefingLaunch span', 'اختر مهمة الهبوط', 'Choose a landing mission'],
   ['#briefingExplore', 'استكشف النظام أولاً', 'Explore the system first'],
   ['#briefingNote', 'Apollo V اسم الفريق. هذه محاكاة تعليمية مبسطة وليست إعادة بناء لمهمة Apollo تاريخية.', 'Apollo V is the team name. This is a simplified educational simulation, not an Apollo mission reconstruction.'],
   ['.evidence-heading > span:first-child', 'منطق المهمة', 'MISSION LOGIC'],
@@ -405,7 +442,7 @@ const staticTranslations = [
   ['#workshop .workshop-kicker', 'Apollo V · مختبر المهمة القمرية', 'Apollo V · Lunar vehicle lab'],
   ['#workshopTitle', 'صمّم ', 'Design your '],
   ['#workshopTitle em', 'مركبتك', 'lander'],
-  ['#workshop .workshop-header-note', 'اختياراتك تغيّر نتيجة الفحص', 'Your choices change the test results'],
+  ['#workshop .workshop-header-note', 'اختياراتك تغيّر سلوك الهبوط', 'Your kit changes descent handling'],
   ['#workshop .picker-label b', 'اختر وجهتك', 'Choose destination'],
   ['#workshop .picker-label small', 'الجاذبية والجو يختلفان من عالم لآخر', 'Gravity and atmospheres vary by world'],
   ['#workshop .preview-top span:first-child', 'معاينة ثلاثية الأبعاد', '3D vehicle preview'],
@@ -421,14 +458,43 @@ const staticTranslations = [
   ['#launchConfirmed', 'المركبة جاهزة — أطلق المهمة', 'Vehicle ready — launch mission'],
   ['.engineering-disclaimer', 'نتائج تعليمية تقريبية وليست بديلاً عن تحليل هندسي حقيقي.', 'Educational estimates only; not a substitute for engineering analysis.'],
   ['.modal-source > span', 'حقائق ومهمات موثقة', 'Verified mission facts'],
-  ['#nasaLink', 'افتح مصدر NASA ↗', 'OPEN NASA SOURCE ↗']
+  ['#nasaLink', 'افتح مصدر NASA ↗', 'OPEN NASA SOURCE ↗'],
+  ['#missionBoardSaveNote', 'تقدمك وأفضل نتائجك تُحفظ على هذا الجهاز', 'Progress and personal bests are saved on this device'],
+  ['#missionBoardGravity', 'جاذبية القمر · ١٫٦٢ م/ث²', 'MOON GRAVITY · 1.62 m/s²']
 ];
+function landingOutcomeCopy(mission) {
+  const score = formatArabic(mission.score || 0);
+  const speed = formatArabic(Number(mission.verticalSpeed || 0).toFixed(1));
+  const fuel = formatArabic(Math.round(mission.fuel || 0));
+  const isRescue = mission.mode === 'rescue';
+  const isStorm = mission.mode === 'storm';
+  if (mission.outcome === 'landed') {
+    return {
+      title: isRescue ? L(`إشارة LUMA-1 عادت · ${score} نقطة`, `LUMA-1 ONLINE · ${score} PTS`) : isStorm ? L(`تم عبور العاصفة · ${score} نقطة`, `STORM CROSSED · ${score} PTS`) : L(`اكتمل التدريب · ${score} نقطة`, `TRAINING COMPLETE · ${score} PTS`),
+      description: isRescue ? L(`نجاح الإنقاذ. سرعة الهبوط ${speed} م/ث، والوقود المتبقي ${fuel}٪. جاذبية القمر ١٫٦٢ م/ث².`, `Rescue complete. Touchdown at ${speed} m/s with ${fuel}% fuel left. Lunar gravity: 1.62 m/s².`) : isStorm ? L(`عبرت الهبات الجانبية وهبطت بسرعة ${speed} م/ث مع ${fuel}٪ وقود متبقٍ.`, `You held your line through the crosswinds and touched down at ${speed} m/s with ${fuel}% fuel left.`) : L(`هبوط تدريبي آمن بسرعة ${speed} م/ث مع ${fuel}٪ وقود متبقٍ.`, `Safe training touchdown at ${speed} m/s with ${fuel}% fuel left.`),
+      retry: L('جولة جديدة', 'FLY AGAIN'),
+      tip: isRescue ? L('أحسنت — بُثّت إشارة الإنقاذ من جديد.', 'Well done — the rescue signal is back online.') : isStorm ? L('أحسنت — حافظت على المسار وسط الهبات.', 'Well done — you held your line through the gusts.') : L('أحسنت — هبوط آمن. جرّب إعداداً آخر للمركبة.', 'Well done — safe landing. Try another vehicle setup.'),
+      flightStatus: isRescue ? L('أُعيد بث الإشارة', 'SIGNAL RESTORED') : isStorm ? L('عُبرت العاصفة', 'STORM CROSSED') : L('اكتمل التدريب', 'TRAINING COMPLETE'),
+      missionState: isRescue ? L('اكتمل الإنقاذ · الإشارة عادت', 'RESCUE COMPLETE · SIGNAL RESTORED') : isStorm ? L('اكتمل عبور العاصفة', 'STORM CROSSING COMPLETE') : L('اكتمل التدريب · هبوط آمن', 'TRAINING COMPLETE · SAFE LANDING')
+    };
+  }
+  const reason = Math.abs(mission.lateral) >= mission.targetRadius ? L('خرجت عن منطقة الهبوط.', 'You missed the landing zone.') : mission.verticalSpeed > 5.5 ? L('سرعة الاصطدام كانت عالية.', 'Touchdown speed was too high.') : Math.abs(mission.lateralSpeed) >= mission.driftLimit ? L('الانحراف الجانبي لم يستقر.', 'Lateral drift was not under control.') : L('لم تستقر المركبة فوق السطح.', 'The lander did not stabilize above the surface.');
+  return {
+    title: isRescue ? L('انقطع الاتصال — حاول مجددًا', 'SIGNAL LOST — TRY AGAIN') : L('فشل الهبوط — حاول مجددًا', 'LANDING FAILED — TRY AGAIN'),
+    description: `${reason} ${L('خفّض السرعة، ووجّه المؤشر إلى الحلقة، ووفر الوقود.', 'Slow down, guide the marker into the ring, and conserve fuel.')}`,
+    retry: L('أعد المحاولة', 'TRY AGAIN'),
+    tip: isRescue ? L('حاول مجددًا — منارة LUMA-1 ما زالت تنتظر.', 'Try again — the LUMA-1 beacon is still waiting.') : L('حاول مجددًا — تبدأ الجاذبية بسحبك فورًا.', 'Try again — lunar gravity starts pulling immediately.'),
+    flightStatus: L('فشلت المحاولة', 'LANDING FAILED'),
+    missionState: isRescue ? L('فُقدت الإشارة · حاول مجددًا', 'SIGNAL LOST · TRY AGAIN') : L('لم يكتمل الهبوط · حاول مجددًا', 'LANDING INCOMPLETE · TRY AGAIN')
+  };
+}
 function applyLanguage() {
   const en = currentLanguage === 'en';
   document.documentElement.lang = currentLanguage;
   document.documentElement.dir = currentLanguage === 'en' ? 'ltr' : 'rtl';
   document.body.classList.toggle('english', en);
   for (const [selector, ar, english] of staticTranslations) setDirectText(selector, en ? english : ar);
+  updateLandingModeHeading(landingMission?.mode || selectedLandingMode);
   setDirectText('.panel-head h1', en ? 'Return to ' : 'عودة إلى ');
   $('.panel-head h1 em').textContent = en ? 'the Moon' : 'القمر';
   $('#languageToggle').textContent = en ? 'عربي' : 'EN';
@@ -442,7 +508,7 @@ function applyLanguage() {
   $('#briefingSkip').setAttribute('aria-label', L('تخطّي المقدمة', 'Skip briefing'));
   $('#speedValue').textContent = `${formatArabic(speed)}×`;
   const s = $('#missionState');
-  if (landingMission && !landingMission.outcome) s.textContent = L('الهبوط جارٍ · أعد إشارة LUMA-1', 'DESCENT IN PROGRESS · RESTORE LUMA-1');
+  if (landingMission && !landingMission.outcome) s.textContent = landingMission.mode === 'training' ? L('تدريب الهبوط جارٍ', 'TRAINING DESCENT IN PROGRESS') : landingMission.mode === 'storm' ? L('عبور العاصفة جارٍ', 'STORM CROSSING IN PROGRESS') : L('الهبوط جارٍ · أعد إشارة LUMA-1', 'DESCENT IN PROGRESS · RESTORE LUMA-1');
   else if (landingMission?.outcome === 'landed') s.textContent = L('اكتمل الإنقاذ · الإشارة عادت', 'RESCUE COMPLETE · SIGNAL RESTORED');
   else if (landingMission?.outcome === 'crashed') s.textContent = L('فُقدت الإشارة · حاول مجددًا', 'SIGNAL LOST · TRY AGAIN');
   else s.textContent = L('منارة LUMA-1 تنتظر الإنقاذ', 'LUMA-1 beacon awaiting rescue');
@@ -455,21 +521,36 @@ function applyLanguage() {
   else if (landingMission && !landingMission.outcome) $('#abortButton').textContent = L('إنهاء المحاولة', 'ABORT ATTEMPT');
   if (!activeMission && !landingMission && ['جاهز', 'READY'].includes($('#flightTime').textContent)) $('#flightTime').textContent = L('جاهز', 'READY');
   if (landingMission?.outcome === 'landed') {
-    const score = formatArabic(landingMission.score || 0);
-    const velocity = formatArabic(landingMission.verticalSpeed.toFixed(1));
-    const fuel = formatArabic(Math.round(landingMission.fuel));
-    $('#landingResult').textContent = L(`إشارة LUMA-1 عادت · ${score} نقطة`, `LUMA-1 ONLINE · ${score} PTS`);
-    $('#landingResultText').textContent = L(`نجاح الإنقاذ. سرعة الهبوط ${velocity} م/ث، والوقود المتبقي ${fuel}٪. جاذبية القمر ١٫٦٢ م/ث².`, `Rescue complete. Touchdown at ${velocity} m/s with ${fuel}% fuel left. Lunar gravity: 1.62 m/s².`);
-    $('#landingRetry').textContent = L('إنقاذ جديد', 'NEW RESCUE');
-    $('#landingTip').textContent = L('أحسنت — بُثّت إشارة الإنقاذ من جديد.', 'Well done — the rescue signal is back online.');
+    const copy = landingOutcomeCopy(landingMission);
+    $('#landingResult').textContent = copy.title;
+    $('#landingResultText').textContent = copy.description;
+    $('#landingRetry').textContent = copy.retry;
+    $('#landingTip').textContent = copy.tip;
+    $('#flightStatus').textContent = copy.flightStatus;
+    $('#missionState').textContent = copy.missionState;
   } else if (landingMission?.outcome === 'crashed') {
-    $('#landingResult').textContent = L('انقطع الاتصال — حاول مجددًا', 'SIGNAL LOST — TRY AGAIN');
-    $('#landingResultText').textContent = L('فقدت منارة LUMA-1 الإشارة. خفّض سرعة الهبوط، ووجّه المؤشر إلى الحلقة، ووفر الوقود.', 'LUMA-1 is still offline. Slow your descent, guide the marker into the ring, and conserve fuel.');
-    $('#landingRetry').textContent = L('أعد المحاولة', 'TRY AGAIN');
-    $('#landingTip').textContent = L('حاول مجددًا — تبدأ الجاذبية بسحبك فورًا.', 'Try again — lunar gravity starts pulling immediately.');
+    const copy = landingOutcomeCopy(landingMission);
+    $('#landingResult').textContent = copy.title;
+    $('#landingResultText').textContent = copy.description;
+    $('#landingRetry').textContent = copy.retry;
+    $('#landingTip').textContent = copy.tip;
+    $('#flightStatus').textContent = copy.flightStatus;
+    $('#missionState').textContent = copy.missionState;
   }
   $('#pauseButton').setAttribute('aria-label', paused ? L('استئناف الحركة', 'Resume simulation') : L('إيقاف الحركة مؤقتاً', 'Pause simulation'));
   $('#homeView').setAttribute('aria-label', L('إعادة عرض النظام الشمسي', 'Reset solar system view'));
+  $('#missionBoardClose').setAttribute('aria-label', L('إغلاق قائمة المهمات', 'Close mission board'));
+  $('#landingMissionSelect').textContent = L('قائمة المهمات', 'MISSION BOARD');
+  if (landingMission?.outcome === 'landed') {
+    const record = flightRecords.records[landingMission.mode] || {};
+    const medal = record.bestMedal || 'bronze';
+    $('#landingMedal').textContent = L(medal === 'gold' ? 'ميدالية ذهبية' : medal === 'silver' ? 'ميدالية فضية' : 'ميدالية برونزية', `${medal.toUpperCase()} MEDAL`);
+    $('#landingRecordLine').textContent = landingMission.isPersonalBest ? L('رقم قياسي شخصي جديد!', 'NEW PERSONAL BEST!') : L(`أفضل نتيجة لك: ${formatArabic(record.bestScore || 0)} نقطة`, `YOUR BEST: ${record.bestScore || 0} PTS`);
+  } else if (landingMission?.outcome === 'crashed') {
+    $('#landingMedal').hidden = true;
+    $('#landingRecordLine').textContent = '';
+  }
+  if (!$('#missionBoard').hidden) renderMissionBoard();
 }
 $('#languageToggle').addEventListener('click', () => {
   currentLanguage = currentLanguage === 'ar' ? 'en' : 'ar';
@@ -495,6 +576,60 @@ function showToast(message) {
   toast.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+function renderMissionBoard() {
+  if (!$('#missionGrid')) return;
+  const entries = Object.entries(landingModes);
+  $('#missionGrid').innerHTML = entries.map(([id, mode], index) => {
+    const locked = id === 'storm' && !flightRecords.stormUnlocked;
+    const record = flightRecords.records[id] || {};
+    const best = record.bestScore ? `${formatArabic(record.bestScore)} ${L('نقطة', 'PTS')}` : L('لم تبدأ بعد', 'NOT FLOWN');
+    const medal = record.bestMedal ? `<span class="mission-card-medal ${record.bestMedal}">${L(record.bestMedal === 'gold' ? 'ذهبي' : record.bestMedal === 'silver' ? 'فضي' : 'برونزي', record.bestMedal.toUpperCase())}</span>` : '';
+    return `<button class="mission-option ${locked ? 'locked' : ''} ${selectedLandingMode === id ? 'selected' : ''}" type="button" data-mode="${id}" ${locked ? 'disabled aria-disabled="true"' : ''} style="--mode-index:${index}">
+      <span class="mission-option-top"><span class="mission-option-icon">${locked ? '▣' : mode.icon}</span><span class="mission-option-tag">${L(...mode.badge)}</span><span class="mission-option-difficulty">${locked ? L('تُفتح بعد الإنقاذ', 'UNLOCK AFTER RESCUE') : L(...mode.difficulty)}</span></span>
+      <strong>${L(...mode.name)}</strong><span class="mission-option-description">${L(...mode.description)}</span>
+      <span class="mission-option-record"><span>${L('أفضل نتيجة', 'PERSONAL BEST')}</span><b>${locked ? L('أكمل إنقاذ LUMA-1', 'COMPLETE LUMA-1 RESCUE') : best}</b>${medal}</span>
+      <span class="mission-option-action">${locked ? L('مقفلة', 'LOCKED') : L(id === 'training' ? 'ابدأ التدريب' : id === 'rescue' ? 'أطلق مهمة الإنقاذ' : 'ادخل العاصفة', id === 'training' ? 'START TRAINING' : id === 'rescue' ? 'LAUNCH RESCUE' : 'ENTER THE STORM')} <i>↗</i></span>
+    </button>`;
+  }).join('');
+  const total = flightRecords.rescues;
+  const personalBest = Math.max(0, ...Object.values(flightRecords.records).map(record => Number(record?.bestScore) || 0));
+  $('#missionBoardStats').innerHTML = `<span><small>${L('عمليات الإنقاذ', 'RESCUES')}</small><b>${formatArabic(total)}</b></span><span><small>${L('أفضل نتيجة', 'PERSONAL BEST')}</small><b>${personalBest ? formatArabic(personalBest) : '—'}</b></span><span><small>${L('المهمة التالية', 'NEXT UNLOCK')}</small><b>${flightRecords.stormUnlocked ? L('العاصفة مفتوحة', 'STORM OPEN') : L('أنقذ LUMA-1', 'RESCUE LUMA-1')}</b></span>`;
+  $('#missionBoardTitle').innerHTML = L('اختر <em>مهمتك</em>', 'CHOOSE YOUR <em>MISSION</em>');
+  $('#missionBoardSubtitle').textContent = L('كل هبوط له ظروفه. تعلّم، أنقذ، ثم واجه العاصفة.', 'Every descent changes the rules. Train, rescue, then face the storm.');
+}
+function openMissionBoard() {
+  if (activeMission || (landingMission && !landingMission.outcome)) { showToast(L('أكمل الهبوط الحالي أو ألغِه قبل اختيار مهمة أخرى.', 'Finish or abort the current descent before choosing another mission.')); return; }
+  renderMissionBoard();
+  $('#missionBoard').hidden = false;
+  playTone(570, 0.08);
+}
+function closeMissionBoard() { $('#missionBoard').hidden = true; }
+function saveLandingResult(mission) {
+  const previous = flightRecords.records[mission.mode] || {};
+  const personalBest = mission.score > (Number(previous.bestScore) || 0);
+  mission.isPersonalBest = personalBest;
+  const bestScore = Math.max(Number(previous.bestScore) || 0, mission.score);
+  const bestMedal = bestScore >= 820 ? 'gold' : bestScore >= 610 ? 'silver' : 'bronze';
+  flightRecords.records[mission.mode] = { bestScore, bestMedal, completed: Boolean(previous.completed) || mission.outcome === 'landed' };
+  if (mission.mode === 'rescue' && mission.outcome === 'landed') flightRecords.rescues += 1;
+  if (mission.mode === 'rescue' && mission.outcome === 'landed') flightRecords.stormUnlocked = true;
+  try { localStorage.setItem(saveKey, JSON.stringify(flightRecords)); } catch {}
+  $('#landingMedal').textContent = L(bestMedal === 'gold' ? 'ميدالية ذهبية' : bestMedal === 'silver' ? 'ميدالية فضية' : 'ميدالية برونزية', `${bestMedal.toUpperCase()} MEDAL`);
+  $('#landingMedal').className = `landing-medal ${bestMedal}`;
+  $('#landingRecordLine').textContent = L(personalBest ? 'رقم قياسي شخصي جديد!' : `أفضل نتيجة لك: ${formatArabic(bestScore)} نقطة`, personalBest ? 'NEW PERSONAL BEST!' : `YOUR BEST: ${bestScore} PTS`);
+}
+function getLanderHandling(mode) {
+  let design = null;
+  try { if (typeof calculateDesign === 'function') design = calculateDesign(); } catch {}
+  const base = mode.start;
+  const tankScale = design ? THREE.MathUtils.clamp(design.tank.capacity / 80000, 0.62, 1.18) : 1;
+  const sliderFuel = design ? THREE.MathUtils.clamp(design.fuelPercent / 0.82, 0.45, 1.2) : 1;
+  const boosterFuel = design ? 1 + THREE.MathUtils.clamp(design.boosters.propellant / 100000, 0, 0.12) : 1;
+  const fuel = THREE.MathUtils.clamp(base.fuel * tankScale * sliderFuel * boosterFuel, 18, 82);
+  const thrustRatio = design ? THREE.MathUtils.clamp(design.destinationTwr / 26.5, 0.68, 1.36) : 1;
+  const steeringRatio = design ? THREE.MathUtils.clamp((design.stability / 46) * design.wingSpan, 0.68, 1.34) : 1;
+  return { fuel, brakeAcceleration: 2.83 * thrustRatio, steeringAcceleration: 7.5 * steeringRatio, driftDamping: 0.22 + steeringRatio * 0.08, thrustRatio, steeringRatio };
 }
 function getWorldPosition(key) {
   const body = bodyMap[key];
@@ -594,15 +729,29 @@ function updateLandingHud() {
   const signedVertical = `${m.verticalSpeed < 0 ? '−' : ''}${formatArabic(Math.round(Math.abs(m.verticalSpeed)))}`;
   $('#landVertical').textContent = signedVertical;
   $('#landFuel').textContent = formatArabic(Math.round(m.fuel));
+  const phaseId = m.altitude > 560 ? 'approach' : m.altitude > 170 ? 'align' : 'flare';
+  const phaseNames = { approach: ['الاقتراب · افحص السرعة', 'APPROACH · CHECK SPEED'], align: ['المحاذاة · صحّح الانحراف', 'ALIGN · CORRECT DRIFT'], flare: ['الهبوط النهائي · نبضات قصيرة', 'FINAL FLARE · SHORT BURNS'] };
+  const guidance = {
+    approach: ['استخدم دفعات قصيرة لخفض سرعة السقوط، وابدأ تصحيح اتجاهك مبكراً.', 'Use short burns to slow down; begin correcting your heading early.'],
+    align: [Math.abs(m.lateral) > m.targetRadius ? 'المؤشر خارج الحلقة — وجّه نحو المركز قبل نفاد الارتفاع.' : 'أنت داخل مسار الإشارة — ركّز الآن على سرعة الهبوط.', Math.abs(m.lateral) > m.targetRadius ? 'Marker outside the ring — steer toward center before altitude runs out.' : 'You are inside the signal lane — focus on descent speed now.'],
+    flare: ['السطح قريب! ثبّت الانحراف واجعل سرعة اللمس أقل من ٥٫٥ م/ث.', 'Surface close! Stabilize drift and keep touchdown below 5.5 m/s.']
+  };
+  $('#landingPhase').textContent = L(...phaseNames[phaseId]);
+  $('#landingObjective').textContent = L(...guidance[phaseId]);
+  const gust = m.windAmplitude ? Math.sin(m.elapsed * 0.86) * m.windAmplitude + Math.sin(m.elapsed * 1.9) * m.windAmplitude * 0.22 : 0;
+  const condition = gust > 1.1 ? L('هبة جانبية ←', 'GUST ←') : gust < -1.1 ? L('هبة جانبية →', 'GUST →') : m.windAmplitude ? L('عاصفة متقلبة · انتبه للهبات', 'SHIFTING STORM · WATCH GUSTS') : m.mode === 'training' ? L('تدريب · منطقة واسعة', 'TRAINING · WIDE ZONE') : L('طقس هادئ · لا توجد هبات', 'CALM · NO GUSTS');
+  $('#landingCondition').textContent = condition;
+  $('#landingCondition').classList.toggle('gust-warning', Math.abs(gust) > 1.1);
+  $('#landingHud').classList.toggle('landing-risk', m.verticalSpeed > 23 || Math.abs(m.lateral) > m.targetRadius * 1.65 || m.fuel < 12);
   $('#flightTime').textContent = `${L('٠٠:', '00:')}${formatArabic(Math.floor(m.elapsed).toString().padStart(2, '0'))}`;
   $('#landFuelBar').style.width = `${Math.max(0, m.fuel)}%`;
   $('#landFuelBar').style.background = m.fuel < 15 ? 'linear-gradient(90deg,#ff756f,#ffbf70)' : 'linear-gradient(90deg,#70e5b3,#ffcc76)';
   const marker = Math.max(4, Math.min(96, 50 + m.lateral / 5));
   $('#landMarker').style.left = `${marker}%`;
-  $('#landMarker').style.borderColor = Math.abs(m.lateral) < 38 ? '#70e5b3' : '#ffbc76';
-  $('#landMarker').style.background = Math.abs(m.lateral) < 38 ? '#70e5b3' : '#ffbc76';
+  $('#landMarker').style.borderColor = Math.abs(m.lateral) < m.targetRadius ? '#70e5b3' : '#ffbc76';
+  $('#landMarker').style.background = Math.abs(m.lateral) < m.targetRadius ? '#70e5b3' : '#ffbc76';
 }
-function startLandingChallenge() {
+function startLandingChallenge(modeId = selectedLandingMode) {
   if (activeMission || (landingMission && !landingMission.outcome)) { showToast(L('أكمل محاولة الهبوط الحالية أولاً.', 'Finish or abort the current descent first.')); return; }
   landingMission = null;
   landingCraft.visible = false;
@@ -612,7 +761,11 @@ function startLandingChallenge() {
   const earthCenter = getWorldPosition('earth');
   const normal = center.clone().sub(earthCenter).normalize();
   const tangent = new THREE.Vector3().crossVectors(normal, new THREE.Vector3(0, 1, 0)).normalize();
-  landingMission = { altitude: 320, verticalSpeed: 26, lateral: 120, lateralSpeed: -2.5, fuel: 42, normal, tangent, outcome: null, elapsed: 0 };
+  selectedLandingMode = landingModes[modeId] ? modeId : 'rescue';
+  updateLandingModeHeading(selectedLandingMode);
+  const mode = landingModes[selectedLandingMode];
+  const handling = getLanderHandling(mode);
+  landingMission = { ...mode.start, altitude: mode.start.altitude, verticalSpeed: mode.start.verticalSpeed, lateral: mode.start.lateral, lateralSpeed: mode.start.lateralSpeed, fuel: handling.fuel, maxFuel: handling.fuel, normal, tangent, outcome: null, elapsed: 0, mode: selectedLandingMode, windAmplitude: mode.start.windAmplitude, handling, score: 0 };
   const surfaceOffset = moon.radius + landingMission.altitude * 0.00012;
   landingCraft.position.copy(center).addScaledVector(normal, surfaceOffset).addScaledVector(tangent, landingMission.lateral * 0.00012);
   landingCraft.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
@@ -620,6 +773,8 @@ function startLandingChallenge() {
   rescueBeacon.group.visible = true;
   rescueBeacon.group.position.copy(center).addScaledVector(normal, moon.radius + 0.007);
   rescueBeacon.group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), normal);
+  $('#landingCondition').textContent = L(...mode.badge);
+  $('#landingPhase').textContent = L('مرحلة الاقتراب', 'APPROACH');
   rescueBeacon.signal.color.set(0xffbd72);
   rescueBeacon.signal.emissive.set(0xff8a3d);
   rescueBeacon.signal.emissiveIntensity = 1.5;
@@ -629,12 +784,14 @@ function startLandingChallenge() {
   $('#landingHud').hidden = false;
   $('#landingEnd').hidden = true;
   $('#landingEnd').classList.remove('fail');
-  $('#landingTip').textContent = L('نبضات قصيرة للدفع. خفّض سرعة الهبوط، ولا تهدر الوقود.', 'Use short thrust bursts. Slow your descent and conserve fuel.');
+  $('#landingHud').classList.remove('landing-risk');
+  $('#landingMedal').hidden = false;
+  $('#landingTip').textContent = L('الأسهم أو A/D للتوجيه · Space للدفع · P للإيقاف المؤقت.', 'Arrows or A/D to steer · Space to thrust · P to pause.');
   $('#landingResult').textContent = L('تم استعادة الإشارة!', 'SIGNAL RESTORED!');
   $('#landingResultText').textContent = '';
   $('#landThrust').classList.remove('pressed');
   document.querySelectorAll('[data-land-steer]').forEach(button => button.classList.remove('pressed'));
-  $('#missionState').textContent = L('الهبوط جارٍ · أعد إشارة LUMA-1', 'DESCENT IN PROGRESS · RESTORE LUMA-1');
+  $('#missionState').textContent = selectedLandingMode === 'training' ? L('تدريب الهبوط جارٍ', 'TRAINING DESCENT IN PROGRESS') : selectedLandingMode === 'storm' ? L('عبور العاصفة جارٍ', 'STORM CROSSING IN PROGRESS') : L('الهبوط جارٍ · أعد إشارة LUMA-1', 'DESCENT IN PROGRESS · RESTORE LUMA-1');
   $('#flightStatus').textContent = L('الهبوط النهائي', 'FINAL DESCENT');
   $('#flightStatus').style.color = '#ffc47a';
   $('#flightTime').textContent = L('٠٠:٠٠', '00:00');
@@ -652,7 +809,8 @@ function startLandingChallenge() {
   controls.update();
   updateLandingHud();
   playTone(620, 0.15);
-  showToast(L('منارة LUMA-1 أمامك — اقترب من الحلقة الذهبية.', 'LUMA-1 beacon ahead — aim for the gold ring.'));
+  const launchMessage = selectedLandingMode === 'training' ? ['بدأ التدريب — تعرّف على حلقة الهبوط وإرشادات السرعة.', 'Training started — follow the landing ring and speed guidance.'] : selectedLandingMode === 'storm' ? ['العاصفة نشطة — راقب اتجاه الهبات وصحّح مسارك.', 'Storm active — watch gust direction and correct your line.'] : ['منارة LUMA-1 أمامك — اقترب من الحلقة الذهبية.', 'LUMA-1 beacon ahead — aim for the gold ring.'];
+  showToast(L(...launchMessage));
 }
 function endLanding(success) {
   if (!landingMission || landingMission.outcome) return;
@@ -664,33 +822,39 @@ function endLanding(success) {
   document.querySelectorAll('[data-land-steer]').forEach(button => button.classList.remove('pressed'));
   $('#landingEnd').hidden = false;
   $('#landingEnd').classList.toggle('fail', !success);
+  let copy;
   if (success) {
-    const score = Math.max(100, Math.round(1000 - Math.abs(landingMission.lateral) * 2 - Math.abs(landingMission.verticalSpeed) * 45 - Math.abs(landingMission.lateralSpeed) * 30 + landingMission.fuel * 2));
+    const score = Math.max(100, Math.round(1200 - Math.abs(landingMission.lateral) * 5 - Math.abs(landingMission.verticalSpeed) * 42 - Math.abs(landingMission.lateralSpeed) * 28 + landingMission.fuel * 3));
     landingMission.score = score;
+    saveLandingResult(landingMission);
     rescueBeacon.signal.color.set(0x83ffc0);
     rescueBeacon.signal.emissive.set(0x22e69a);
     rescueBeacon.signal.emissiveIntensity = 2.8;
     rescueBeacon.ringMaterial.color.set(0x83ffc0);
-    $('#landingResult').textContent = L(`إشارة LUMA-1 عادت · ${formatArabic(score)} نقطة`, `LUMA-1 ONLINE · ${formatArabic(score)} PTS`);
-    $('#landingResultText').textContent = L(`نجاح الإنقاذ. هبطت بسرعة ${formatArabic(landingMission.verticalSpeed.toFixed(1))} م/ث، وبقي ${formatArabic(Math.round(landingMission.fuel))}٪ من الوقود. جاذبية القمر ١٫٦٢ م/ث².`, `Rescue complete. Touchdown at ${formatArabic(landingMission.verticalSpeed.toFixed(1))} m/s with ${formatArabic(Math.round(landingMission.fuel))}% fuel left. Lunar gravity: 1.62 m/s².`);
-    $('#flightStatus').textContent = L('أُعيد بث الإشارة', 'SIGNAL RESTORED');
+    copy = landingOutcomeCopy(landingMission);
+    $('#landingResult').textContent = copy.title;
+    $('#landingResultText').textContent = copy.description;
+    $('#flightStatus').textContent = copy.flightStatus;
     $('#flightStatus').style.color = '#83e3a9';
-    $('#missionState').textContent = L('اكتمل الإنقاذ · الإشارة عادت', 'RESCUE COMPLETE · SIGNAL RESTORED');
+    $('#missionState').textContent = copy.missionState;
     playTone(790, 0.28);
   } else {
-    const reason = Math.abs(landingMission.lateral) >= 38 ? L('خرجت عن منطقة الهبوط.', 'You missed the landing zone.') : landingMission.verticalSpeed > 5.5 ? L('سرعة الاصطدام كانت عالية.', 'Touchdown speed was too high.') : Math.abs(landingMission.lateralSpeed) >= 2.5 ? L('الانحراف الجانبي لم يستقر.', 'Lateral drift was not under control.') : L('لم تستقر المركبة فوق السطح.', 'The lander did not stabilize above the surface.');
-    $('#landingResult').textContent = L('انقطع الاتصال — حاول مجددًا', 'SIGNAL LOST — TRY AGAIN');
-    $('#landingResultText').textContent = `${reason} ${L('خفّض السرعة، ووجّه المؤشر إلى الحلقة، ووفر الوقود.', 'Slow down, guide the marker into the ring, and conserve fuel.')}`;
+    $('#landingMedal').hidden = true;
+    $('#landingRecordLine').textContent = '';
+    copy = landingOutcomeCopy(landingMission);
+    $('#landingResult').textContent = copy.title;
+    $('#landingResultText').textContent = copy.description;
     $('#landingEnd').classList.add('fail');
-    $('#flightStatus').textContent = L('فشلت المحاولة', 'ATTEMPT FAILED');
+    $('#flightStatus').textContent = copy.flightStatus;
     $('#flightStatus').style.color = '#ff957e';
-    $('#missionState').textContent = L('فُقدت الإشارة · حاول مجددًا', 'SIGNAL LOST · TRY AGAIN');
+    $('#missionState').textContent = copy.missionState;
     playTone(180, 0.3);
   }
-  $('#landingRetry').textContent = success ? L('إنقاذ جديد', 'NEW RESCUE') : L('أعد المحاولة', 'TRY AGAIN');
+  $('#landingRetry').textContent = copy.retry;
+  $('#landingMissionSelect').textContent = L('قائمة المهمات', 'MISSION BOARD');
   $('#abortButton').hidden = true;
   $('#launchButton').disabled = false;
-  $('#landingTip').textContent = success ? L('أحسنت — بُثّت إشارة الإنقاذ من جديد.', 'Well done — the rescue signal is back online.') : L('حاول مجددًا — تبدأ الجاذبية بسحبك فورًا.', 'Try again — lunar gravity starts pulling immediately.');
+  $('#landingTip').textContent = copy.tip;
 }
 function updateLandingChallenge(delta) {
   const m = landingMission;
@@ -698,14 +862,15 @@ function updateLandingChallenge(delta) {
   const dt = delta;
   const thrusting = landingInput.thrust && m.fuel > 0;
   if (thrusting) {
-    m.verticalSpeed += (1.62 - 4.45) * dt;
+    m.verticalSpeed += (1.62 - m.handling.brakeAcceleration) * dt;
     m.fuel = Math.max(0, m.fuel - 1.05 * dt);
   } else {
     m.verticalSpeed += 1.62 * dt;
   }
   m.verticalSpeed = Math.max(-7, Math.min(48, m.verticalSpeed));
-  m.lateralSpeed += landingInput.steer * 7.5 * dt;
-  m.lateralSpeed *= Math.max(0, 1 - 0.22 * dt);
+  const wind = m.windAmplitude ? Math.sin(m.elapsed * 0.86) * m.windAmplitude + Math.sin(m.elapsed * 1.9) * m.windAmplitude * 0.22 : 0;
+  m.lateralSpeed += (landingInput.steer * m.handling.steeringAcceleration + wind) * dt;
+  m.lateralSpeed *= Math.max(0, 1 - m.handling.driftDamping * dt);
   m.lateral += m.lateralSpeed * dt;
   m.altitude -= m.verticalSpeed * dt;
   m.elapsed += dt;
@@ -726,7 +891,7 @@ function updateLandingChallenge(delta) {
   camera.position.copy(cameraTarget).add(cameraOffset);
   landingFillLight.position.copy(camera.position);
   updateLandingHud();
-  if (m.altitude <= 0) endLanding(m.verticalSpeed >= 0 && m.verticalSpeed <= 5.5 && Math.abs(m.lateral) < 38 && Math.abs(m.lateralSpeed) < 2.5);
+  if (m.altitude <= 0) endLanding(m.verticalSpeed >= 0 && m.verticalSpeed <= 5.5 && Math.abs(m.lateral) < m.targetRadius && Math.abs(m.lateralSpeed) < m.driftLimit);
 }
 function finishMission() {
   activeMission = null;
@@ -767,16 +932,29 @@ function abortMission() {
   showToast(L('أُلغيت المحاولة. يمكنك بدء الإنقاذ مجدداً.', 'Attempt aborted. You can launch the rescue again.'));
 }
 $('#launchButton').addEventListener('click', openWorkshop);
-$('#quickPlay').addEventListener('click', startLandingChallenge);
+$('#quickPlay').addEventListener('click', openMissionBoard);
 const closeMissionBriefing = () => { $('#missionBriefing').hidden = true; document.body.classList.remove('briefing-active'); };
-$('#briefingLaunch').addEventListener('click', () => { closeMissionBriefing(); startLandingChallenge(); });
+$('#briefingLaunch').addEventListener('click', () => { closeMissionBriefing(); openMissionBoard(); });
 $('#briefingExplore').addEventListener('click', closeMissionBriefing);
 $('#briefingSkip').addEventListener('click', closeMissionBriefing);
 $('#missionBriefing').addEventListener('click', event => { if (event.target === $('#missionBriefing')) closeMissionBriefing(); });
 window.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('#missionBriefing').hidden) closeMissionBriefing(); });
 $('#abortButton').addEventListener('click', abortMission);
 $('#landingExit').addEventListener('click', abortMission);
-$('#landingRetry').addEventListener('click', startLandingChallenge);
+$('#landingRetry').addEventListener('click', () => startLandingChallenge(selectedLandingMode));
+$('#landingMissionSelect').addEventListener('click', openMissionBoard);
+$('#missionBoardClose').addEventListener('click', closeMissionBoard);
+$('#missionBoard').addEventListener('click', event => { if (event.target === $('#missionBoard')) closeMissionBoard(); });
+$('#missionGrid').addEventListener('click', event => {
+  const button = event.target.closest('[data-mode]');
+  if (!button || button.disabled) return;
+  selectedLandingMode = button.dataset.mode;
+  closeMissionBoard();
+  startLandingChallenge(selectedLandingMode);
+});
+window.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !$('#missionBoard').hidden) closeMissionBoard();
+});
 $('#landThrust').addEventListener('pointerdown', event => { event.preventDefault(); landingInput.thrust = true; event.currentTarget.classList.add('pressed'); });
 ['pointerup', 'pointercancel', 'pointerleave', 'lostpointercapture'].forEach(type => $('#landThrust').addEventListener(type, () => { landingInput.thrust = false; $('#landThrust').classList.remove('pressed'); }));
 document.querySelectorAll('[data-land-steer]').forEach(button => {
@@ -790,11 +968,13 @@ window.addEventListener('keydown', event => {
   if (event.code === 'Space' || event.code === 'ArrowUp') { event.preventDefault(); landingInput.thrust = true; $('#landThrust').classList.add('pressed'); }
   if (event.code === 'ArrowLeft' || event.code === 'KeyA') { event.preventDefault(); landingInput.steer = -1; document.querySelector('[data-land-steer="-1"]').classList.add('pressed'); }
   if (event.code === 'ArrowRight' || event.code === 'KeyD') { event.preventDefault(); landingInput.steer = 1; document.querySelector('[data-land-steer="1"]').classList.add('pressed'); }
+  if (event.code === 'KeyP' && landingMission && !landingMission.outcome) $('#pauseButton').click();
 });
 window.addEventListener('keyup', event => {
   if (event.code === 'Space' || event.code === 'ArrowUp') { landingInput.thrust = false; $('#landThrust').classList.remove('pressed'); }
   if (event.code === 'ArrowLeft' || event.code === 'KeyA') { if (landingInput.steer === -1) landingInput.steer = 0; document.querySelector('[data-land-steer="-1"]').classList.remove('pressed'); }
   if (event.code === 'ArrowRight' || event.code === 'KeyD') { if (landingInput.steer === 1) landingInput.steer = 0; document.querySelector('[data-land-steer="1"]').classList.remove('pressed'); }
+  if (event.code === 'KeyP') event.preventDefault();
 });
 $('#pauseButton').addEventListener('click', () => {
   paused = !paused;
