@@ -83,3 +83,62 @@ body.english .modal-index{margin-right:0;margin-left:auto}
 body.english .texture-credit{right:27px;left:auto}
 body.english .landing-objective{border-left:2px solid #ffbd72;border-radius:7px 0 0 7px}
 @media(max-width:700px){.language-toggle{min-width:38px;padding:0 6px;font-size:9px}.landing-objective{font-size:7px;padding:5px 7px}}
+
+/* Apollo V mission briefing: problem, playable loop, and NASA evidence in one glance */
+.briefing-backdrop{position:fixed;inset:0;z-index:10;display:grid;place-items:center;padding:24px;background:linear-gradient(135deg,#030712d9,#07111fe8 52%,#080c19e8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.briefing-backdrop[hidden]{display:none}
+.briefing-card{width:min(1000px,100%);max-height:min(720px,calc(100svh - 48px));overflow:auto;position:relative;padding:25px 30px 17px;border:1px solid #a6dced22;border-radius:24px;background:linear-gradient(132deg,#111d2e 0%,#0b1422 56%,#101827 100%);box-shadow:0 36px 130px #000b,0 0 80px #6ac9dc0b;color:#f1f6ff;direction:ltr;text-align:left;animation:appear .32s ease-out}
+.briefing-card:before{content:"";position:absolute;top:70px;right:-82px;width:260px;height:260px;border:1px solid #8bdfea12;border-radius:50%;box-shadow:0 0 0 28px #8bdfea07,0 0 0 58px #8bdfea04;pointer-events:none}
+.briefing-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:19px;border-bottom:1px solid #ffffff12;position:relative;z-index:1}
+.briefing-brand{display:flex;align-items:center;gap:10px;color:#f2f7fd;text-decoration:none;font-size:11px;font-weight:700;letter-spacing:.13em}
+.briefing-brand>span:last-child{display:grid;gap:3px}
+.briefing-brand small{font-size:8px;font-weight:500;letter-spacing:.14em;color:#8294ab}
+.briefing-mark{width:34px;height:34px;display:grid;place-items:center;border:1px solid #83e3ee55;border-radius:50%;color:#a4f0f1;font-size:15px;background:radial-gradient(circle,#8be3ed20,#8be3ed05)}
+.briefing-close{width:32px;height:32px;border:1px solid #ffffff1a;border-radius:10px;background:#ffffff08;color:#cad6e5;font-size:21px;line-height:1;cursor:pointer}
+.briefing-content{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(290px,.85fr);gap:40px;padding:28px 0 23px;align-items:center}
+.briefing-copy{max-width:540px}
+.briefing-eyebrow{display:flex;align-items:center;gap:8px;color:#9aafc4;font-size:9px;letter-spacing:.17em;font-weight:600}
+.briefing-eyebrow i,.evidence-live i,.briefing-footer i{width:6px;height:6px;border-radius:50%;background:#7ce2c0;box-shadow:0 0 10px #7ce2c0;flex:none}
+.briefing-copy h2{margin:13px 0 10px;font:600 clamp(30px,4.1vw,48px)/1.12 Inter,system-ui,sans-serif;letter-spacing:-.045em;color:#f3f7fb}
+.briefing-copy h2 em{font-style:normal;color:#8fe1e8}
+.briefing-copy>p:not(.briefing-note){max-width:465px;margin:0;color:#aab8ca;font-size:13px;line-height:1.8}
+.briefing-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:21px}
+.briefing-launch{height:44px;min-width:185px;display:flex;justify-content:space-between;align-items:center;gap:21px;padding:0 14px;border:0;border-radius:11px;background:linear-gradient(105deg,#8be6e8,#a7efd0);color:#06171c;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 9px 26px #70d9db20;transition:transform .2s,filter .2s}
+.briefing-launch:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.briefing-launch b{font-size:16px;font-weight:500}
+.briefing-explore{height:42px;padding:0 12px;border:1px solid #ffffff1b;border-radius:10px;background:#ffffff06;color:#bdcadd;font-size:10px;cursor:pointer}
+.briefing-explore:hover,.briefing-close:hover{background:#ffffff12;color:#fff}
+.briefing-note{max-width:470px;margin:15px 0 0;color:#73849a;font-size:9px;line-height:1.65}
+.briefing-evidence{padding:16px 16px 13px;border:1px solid #ffffff13;border-radius:16px;background:linear-gradient(148deg,#ffffff08,#ffffff03);box-shadow:inset 0 1px #ffffff05}
+.evidence-heading{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #ffffff10;color:#93a5bb;font-size:8px;letter-spacing:.15em;font-weight:700}
+.evidence-live{display:flex;align-items:center;gap:6px;color:#78dcb9;font-size:7px;letter-spacing:.11em}
+.evidence-live i{width:5px;height:5px}
+.mission-steps{display:grid;gap:0;padding:2px 0 7px}
+.mission-steps>div{display:grid;grid-template-columns:32px 1fr;align-items:center;gap:7px;min-height:48px;border-bottom:1px solid #ffffff0a}
+.mission-steps>div:last-child{border-bottom:0}
+.mission-steps>div>b{width:23px;height:23px;display:grid;place-items:center;border:1px solid #8de0e52b;border-radius:7px;background:#85deeb0c;color:#8fe3e9;font-size:8px}
+.mission-steps>div>span{display:grid;gap:2px}
+.mission-steps strong{color:#e3edf7;font-size:10px;font-weight:600}
+.mission-steps small{color:#8292a8;font-size:8px}
+.evidence-facts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:5px}
+.evidence-facts>div{display:grid;gap:6px;padding:9px;border:1px solid #ffffff10;border-radius:9px;background:#06101b66}
+.evidence-facts>div>span{color:#8293a8;font-size:7px;letter-spacing:.08em}
+.evidence-facts strong{color:#f0f5fc;font:600 17px/1 Inter,system-ui,sans-serif;letter-spacing:-.03em;white-space:nowrap}
+.evidence-facts strong small{color:#9aabc0;font-size:9px;font-weight:500;letter-spacing:0}
+.briefing-data-note{margin:9px 0 0;padding:8px 9px;border-left:2px solid #82dfe46b;border-radius:0 7px 7px 0;background:#81e2e90a;color:#96a9bf;font-size:8px;line-height:1.6}
+.briefing-sources{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-top:12px;padding-top:11px;border-top:1px solid #ffffff10}
+.briefing-sources>span{width:100%;color:#7e90a6;font-size:7px;letter-spacing:.12em}
+.briefing-sources a{color:#8adfe6;text-decoration:none;font-size:8px}
+.briefing-sources a:hover{text-decoration:underline;color:#b5fbf6}
+.briefing-footer{display:flex;justify-content:space-between;align-items:center;padding-top:13px;border-top:1px solid #ffffff10;color:#71839a;font-size:7px;letter-spacing:.13em}
+.briefing-footer>span{display:flex;align-items:center;gap:7px}
+.briefing-footer i{width:5px;height:5px}
+body.english .briefing-card{direction:ltr;text-align:left}
+body:not(.english) .briefing-card{direction:rtl;text-align:right;font-family:'IBM Plex Sans Arabic',sans-serif}
+body:not(.english) .briefing-top,body:not(.english) .briefing-brand,body:not(.english) .briefing-footer,body:not(.english) .briefing-sources{direction:ltr}
+body:not(.english) .briefing-copy h2{font-family:'IBM Plex Sans Arabic',sans-serif;letter-spacing:0;line-height:1.35}
+body:not(.english) .briefing-eyebrow{letter-spacing:0}
+body:not(.english) .briefing-data-note{border-left:0;border-right:2px solid #82dfe46b;border-radius:7px 0 0 7px}
+@media(max-width:700px){.briefing-backdrop{padding:10px;place-items:center}.briefing-card{max-height:calc(100svh - 20px);padding:17px 16px 12px;border-radius:19px}.briefing-top{padding-bottom:12px}.briefing-content{grid-template-columns:1fr;gap:16px;padding:16px 0 14px}.briefing-copy h2{font-size:clamp(27px,8vw,37px);margin:9px 0}.briefing-copy>p:not(.briefing-note){font-size:11px;line-height:1.65}.briefing-actions{margin-top:14px;gap:7px}.briefing-launch{height:40px;min-width:165px;font-size:10px}.briefing-explore{height:39px;font-size:9px}.briefing-note{margin-top:10px;font-size:8px}.briefing-evidence{padding:12px;border-radius:13px}.evidence-heading{padding-bottom:8px}.mission-steps>div{min-height:39px}.mission-steps>div>b{width:21px;height:21px}.evidence-facts{margin-top:2px}.evidence-facts>div{padding:7px}.evidence-facts strong{font-size:15px}.briefing-data-note{margin-top:7px;padding:7px 8px;font-size:7px}.briefing-sources{margin-top:9px;padding-top:8px;gap:7px 10px}.briefing-footer{font-size:6px}}
+@media(max-width:390px){.briefing-content{gap:12px;padding:12px 0}.briefing-copy h2{font-size:27px}.briefing-copy>p:not(.briefing-note){font-size:10px}.briefing-actions{align-items:stretch;flex-direction:column}.briefing-launch,.briefing-explore{width:100%}.briefing-note{font-size:7px}.mission-steps>div{min-height:35px}.mission-steps small{font-size:7px}}
+@media(prefers-reduced-motion:reduce){.briefing-card{animation:none}.briefing-launch{transition:none}}

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=apollo-v-20261113b">
 </head>
 <body>
   <main class="simulator">
@@ -38,6 +38,22 @@
     <div class="camera-hint glass"><span class="drag-icon">✥</span><span>اسحب للدوران<br><small>مرّر للتقريب · زر يمين للتحريك</small></span></div>
     <div class="bottom-bar"><div class="scale-note"><span>المسافات والأحجام مصغّرة للمحاكاة</span><span class="scale-rule"><i></i><i></i></span></div><div class="sim-controls glass"><button id="zoomOut" class="control-button" aria-label="إبعاد الكاميرا">−</button><button id="homeView" class="control-button home-control" aria-label="إعادة عرض النظام الشمسي">⌂</button><button id="zoomIn" class="control-button" aria-label="تقريب الكاميرا">+</button><span class="control-divider"></span><button id="pauseButton" class="control-button pause-control" aria-label="إيقاف الحركة مؤقتاً">Ⅱ</button><div class="speed-control"><label for="speedRange">السرعة</label><input id="speedRange" type="range" min="0" max="3" value="1" step="1"><span id="speedValue">١×</span></div></div><div class="legend"><span><i class="legend-sun"></i> الشمس</span><span><i class="legend-planet"></i> كواكب</span><span><i class="legend-orbit"></i> مدارات</span></div></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <section class="briefing-backdrop" id="missionBriefing" role="dialog" aria-modal="true" aria-labelledby="briefingTitle">
+      <article class="briefing-card">
+        <header class="briefing-top"><a class="briefing-brand" href="#" aria-label="Apollo V"><span class="briefing-mark">V</span><span>APOLLO V<small>MISSION CONTROL · 01</small></span></a><button id="briefingSkip" class="briefing-close" type="button" aria-label="تخطّي المقدمة">×</button></header>
+        <div class="briefing-content">
+          <div class="briefing-copy"><span class="briefing-eyebrow"><i></i> MOON · SIGNAL RESCUE</span><h2 id="briefingTitle"><span id="briefingHeadlineTop">One descent.</span><br><em id="briefingHeadlineEm">One signal to restore.</em></h2><p id="briefingIntro">LUMA-1 is fictional. This lander challenge turns NASA’s measured Moon gravity into a playable decision: steer inside the signal ring, spend thrust carefully, and land with fuel to spare.</p><div class="briefing-actions"><button id="briefingLaunch" class="briefing-launch" type="button"><span>Start lunar rescue</span><b>↗</b></button><button id="briefingExplore" class="briefing-explore" type="button">Explore the system first</button></div><p class="briefing-note" id="briefingNote">Apollo V is the team name. This is a simplified educational simulation, not an Apollo mission reconstruction.</p></div>
+          <div class="briefing-evidence">
+            <div class="evidence-heading"><span>MISSION LOGIC</span><span class="evidence-live"><i></i> SIMULATION</span></div>
+            <div class="mission-steps"><div><b>01</b><span><strong>Steer</strong><small>Line up with the gold signal ring</small></span></div><div><b>02</b><span><strong>Brake</strong><small>Use short engine pulses to slow down</small></span></div><div><b>03</b><span><strong>Rescue</strong><small>Land softly; conserve your fuel</small></span></div></div>
+            <div class="evidence-facts"><div><span>MOON SURFACE GRAVITY</span><strong>1.62 <small>m/s²</small></strong></div><div><span>MEAN EARTH DISTANCE</span><strong>384,400 <small>km</small></strong></div></div>
+            <p class="briefing-data-note" id="briefingDataNote">NASA’s lunar-gravity value drives the fall model. Fuel, scale, and scoring are simplified for play—not flight engineering.</p>
+            <div class="briefing-sources"><span id="briefingSourceLabel">RESEARCH · NASA / NSSDC</span><a href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html" target="_blank" rel="noopener noreferrer">Lunar fact sheet ↗</a><a href="https://www.nasa.gov/the-apollo-program/" target="_blank" rel="noopener noreferrer">Apollo program ↗</a><a href="https://science.nasa.gov/moon/facts/" target="_blank" rel="noopener noreferrer">Moon facts ↗</a></div>
+          </div>
+        </div>
+        <footer class="briefing-footer"><span><i></i> THREE.JS · INTERACTIVE 3D</span><span>BUILT BY APOLLO V</span></footer>
+      </article>
+    </section>
     <section class="landing-hud glass" id="landingHud" aria-label="تحدي إنقاذ LUMA-1" hidden>
       <header class="landing-head"><div><span class="landing-kicker">إشارة إنقاذ · LUMA-1</span><h2>الهبوط قرب المنارة</h2></div><button id="landingExit" type="button" aria-label="إنهاء المحاولة">×</button></header>
       <p class="landing-objective" id="landingObjective">وجّه المركبة إلى منطقة الإشارة وخفّض سرعتك قبل ملامسة السطح.</p>
@@ -87,6 +103,6 @@
       }
     }
   </script>
-  <script type="module" src="script.js?v=apollo-v-20261111e"></script>
+  <script type="module" src="script.js?v=apollo-v-20261113a"></script>
 </body>
 </html>

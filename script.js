@@ -376,6 +376,32 @@ const staticTranslations = [
   ['#landingResult', 'تم استعادة الإشارة!', 'SIGNAL RESTORED!'],
   ['#landingResultText', 'تمت إعادة بث LUMA-1. نجاح الإنقاذ يعتمد على هبوطك الناعم.', 'LUMA-1 is back online. A gentle landing completed the rescue.'],
   ['#landingRetry', 'أعد المحاولة', 'TRY AGAIN'],
+  ['.briefing-brand > span:last-child', 'APOLLO V', 'APOLLO V'],
+  ['.briefing-brand small', 'غرفة العمليات · ٠١', 'MISSION CONTROL · 01'],
+  ['.briefing-eyebrow', 'القمر · إنقاذ الإشارة', 'MOON · SIGNAL RESCUE'],
+  ['#briefingHeadlineTop', 'هبوط واحد.', 'One descent.'],
+  ['#briefingHeadlineEm', 'إشارة واحدة لنعيدها.', 'One signal to restore.'],
+  ['#briefingIntro', 'LUMA-1 خيالية. يحوّل تحدي الهبوط جاذبية القمر التي تقيسها NASA إلى قرار قابل للعب: وجّه المركبة إلى الحلقة، استخدم الدفع بحذر، واهبط مع وقود متبقٍ.', 'LUMA-1 is fictional. This lander challenge turns NASA’s measured Moon gravity into a playable decision: steer inside the signal ring, spend thrust carefully, and land with fuel to spare.'],
+  ['#briefingLaunch span', 'ابدأ إنقاذ القمر', 'Start lunar rescue'],
+  ['#briefingExplore', 'استكشف النظام أولاً', 'Explore the system first'],
+  ['#briefingNote', 'Apollo V اسم الفريق. هذه محاكاة تعليمية مبسطة وليست إعادة بناء لمهمة Apollo تاريخية.', 'Apollo V is the team name. This is a simplified educational simulation, not an Apollo mission reconstruction.'],
+  ['.evidence-heading > span:first-child', 'منطق المهمة', 'MISSION LOGIC'],
+  ['.evidence-live', 'محاكاة', 'SIMULATION'],
+  ['.mission-steps > div:nth-child(1) strong', 'وجّه', 'Steer'],
+  ['.mission-steps > div:nth-child(1) small', 'ضع المؤشر داخل الحلقة الذهبية', 'Line up with the gold signal ring'],
+  ['.mission-steps > div:nth-child(2) strong', 'خفّف', 'Brake'],
+  ['.mission-steps > div:nth-child(2) small', 'نبضات قصيرة لإبطاء الهبوط', 'Use short engine pulses to slow down'],
+  ['.mission-steps > div:nth-child(3) strong', 'أنقذ', 'Rescue'],
+  ['.mission-steps > div:nth-child(3) small', 'اهبط بنعومة ووفّر الوقود', 'Land softly; conserve your fuel'],
+  ['.evidence-facts > div:first-child > span', 'جاذبية سطح القمر', 'MOON SURFACE GRAVITY'],
+  ['.evidence-facts > div:last-child > span', 'متوسط البعد عن الأرض', 'MEAN EARTH DISTANCE'],
+  ['#briefingDataNote', 'قيمة جاذبية القمر من NASA تحرّك نموذج السقوط. الوقود والمقياس والنقاط مبسّطة للعب، وليست هندسة طيران.', 'NASA’s lunar-gravity value drives the fall model. Fuel, scale, and scoring are simplified for play—not flight engineering.'],
+  ['#briefingSourceLabel', 'مصادر البحث · NASA / NSSDC', 'RESEARCH · NASA / NSSDC'],
+  ['.briefing-footer > span:first-child', 'ثري دي · تجربة تفاعلية', 'THREE.JS · INTERACTIVE 3D'],
+  ['.briefing-sources a:nth-child(2)', 'ورقة حقائق القمر ↗', 'Lunar fact sheet ↗'],
+  ['.briefing-sources a:nth-child(3)', 'برنامج Apollo ↗', 'Apollo program ↗'],
+  ['.briefing-sources a:nth-child(4)', 'حقائق القمر ↗', 'Moon facts ↗'],
+  ['.briefing-footer > span:last-child', 'من تنفيذ فريق Apollo V', 'BUILT BY APOLLO V'],
   ['#workshop .workshop-kicker', 'Apollo V · مختبر المهمة القمرية', 'Apollo V · Lunar vehicle lab'],
   ['#workshopTitle', 'صمّم ', 'Design your '],
   ['#workshopTitle em', 'مركبتك', 'lander'],
@@ -413,6 +439,7 @@ function applyLanguage() {
   $('#zoomOut').setAttribute('aria-label', L('إبعاد الكاميرا', 'Zoom out'));
   $('#zoomIn').setAttribute('aria-label', L('تقريب الكاميرا', 'Zoom in'));
   $('#landingExit').setAttribute('aria-label', L('إنهاء المحاولة', 'End attempt'));
+  $('#briefingSkip').setAttribute('aria-label', L('تخطّي المقدمة', 'Skip briefing'));
   $('#speedValue').textContent = `${formatArabic(speed)}×`;
   const s = $('#missionState');
   if (landingMission && !landingMission.outcome) s.textContent = L('الهبوط جارٍ · أعد إشارة LUMA-1', 'DESCENT IN PROGRESS · RESTORE LUMA-1');
@@ -741,6 +768,12 @@ function abortMission() {
 }
 $('#launchButton').addEventListener('click', openWorkshop);
 $('#quickPlay').addEventListener('click', startLandingChallenge);
+const closeMissionBriefing = () => { $('#missionBriefing').hidden = true; };
+$('#briefingLaunch').addEventListener('click', () => { closeMissionBriefing(); startLandingChallenge(); });
+$('#briefingExplore').addEventListener('click', closeMissionBriefing);
+$('#briefingSkip').addEventListener('click', closeMissionBriefing);
+$('#missionBriefing').addEventListener('click', event => { if (event.target === $('#missionBriefing')) closeMissionBriefing(); });
+window.addEventListener('keydown', event => { if (event.key === 'Escape' && !$('#missionBriefing').hidden) closeMissionBriefing(); });
 $('#abortButton').addEventListener('click', abortMission);
 $('#landingExit').addEventListener('click', abortMission);
 $('#landingRetry').addEventListener('click', startLandingChallenge);
